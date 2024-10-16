@@ -355,13 +355,7 @@ def generate_pdf_report(response, user, projects):
         elements.append(Spacer(1, 0.3*inch))
 
     doc.build(elements)
-# Usage in your view:
-# from django.http import FileResponse
-# def export_pdf_report(request):
-#     response = FileResponse(content_type='application/pdf')
-#     response['Content-Disposition'] = 'attachment; filename="sk_budget_report.pdf"'
-#     generate_pdf_report(response, request.user, Project.objects.filter(chairman=request.user))
-#     return response
+
 
 
 @login_required

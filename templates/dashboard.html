@@ -16,8 +16,8 @@
                 {% endfor %}
             </div>
         {% endif %}
-    
-    
+
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <!-- Main Budget Card -->
             <div class="bg-primary rounded-lg p-6 shadow-lg">
@@ -127,7 +127,7 @@
                                     <i class="fas fa-trash-alt mr-1"></i>Delete
                                 </button>
                             </div>
-                            
+
                         </div>
                     </div>
                 {% empty %}
@@ -197,27 +197,27 @@
     </div>
 
     <!-- New Year Budget Modal -->
-<div id="newYearBudgetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Create New Year Budget</h3>
-            <div class="mt-2 px-7 py-3">
-                <form id="newYearBudgetForm" method="post" action="{% url 'create_new_year_budget' %}">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        <label for="new_year" class="block text-gray-700 text-sm font-bold mb-2">Year</label>
-                        <input type="number" id="new_year" name="year" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="mb-4">
-                        <label for="new_total_budget" class="block text-gray-700 text-sm font-bold mb-2">Total Budget</label>
-                        <input type="number" id="new_total_budget" name="total_budget" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create New Year Budget</button>
-                </form>
+    <div id="newYearBudgetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Create New Year Budget</h3>
+                <div class="mt-2 px-7 py-3">
+                    <form id="newYearBudgetForm" method="post" action="{% url 'create_new_year_budget' %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="new_year" class="block text-gray-700 text-sm font-bold mb-2">Year</label>
+                            <input type="number" id="new_year" name="year" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="mb-4">
+                            <label for="new_total_budget" class="block text-gray-700 text-sm font-bold mb-2">Total Budget</label>
+                            <input type="number" id="new_total_budget" name="total_budget" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create New Year Budget</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <script>
         function openModal() {
@@ -253,7 +253,7 @@
                 window.location.href = `/delete-project/${projectId}/`;
             }
         }
-        
+
         document.addEventListener('DOMContentLoaded', function() {
             var messages = document.querySelectorAll('.message');
             messages.forEach(function(message) {
@@ -270,7 +270,7 @@
         function openNewYearBudgetModal() {
             document.getElementById('newYearBudgetModal').classList.remove('hidden');
         }
-    
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             var modal = document.getElementById('newYearBudgetModal');

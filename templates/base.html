@@ -29,12 +29,12 @@
                 <div class="p-4 flex flex-col items-center">
                     <a href="{% url 'edit_profile' %}" class="mb-3 relative">
                         {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
+                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
                         {% else %}
-                        <img src="{% static 'img/drr.png' %}" alt="Default Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
+                            <img src="{% static 'img/drr.png' %}" alt="Default Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
                         {% endif %}
                         <i class="fas fa-pencil-alt absolute bottom-0 right-0 bg-quaternary text-white p-2 rounded-full"></i>
-                    </a>                    
+                    </a>
                     <div class="text-center relative">
                         <h2 class="text-lg font-semibold">{{ user.get_full_name|title }}</h2>
                         <p class="text-xs text-gray-300">{{ user.address|truncatechars:20|capfirst }}</p>

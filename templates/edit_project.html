@@ -3,50 +3,50 @@
 {% load widget_tweaks %}
 
 {% block content %}
-<div class="container mx-auto mt-8 max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center text-primary">
-        <i class="fas fa-edit mr-2"></i>Edit Project
-    </h2>
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ field.id_for_label }}">
-                    {% if field.name == 'title' %}
-                        <i class="fas fa-heading mr-2"></i>
-                    {% elif field.name == 'description' %}
-                        <i class="fas fa-align-left mr-2"></i>
-                    {% elif field.name == 'start_date' %}
-                        <i class="fas fa-calendar-alt mr-2"></i>
-                    {% elif field.name == 'end_date' %}
-                        <i class="fas fa-calendar-check mr-2"></i>
-                    {% elif field.name == 'status' %}
-                        <i class="fas fa-tasks mr-2"></i>
-                    {% else %}
-                        <i class="fas fa-info-circle mr-2"></i>
+    <div class="container mx-auto mt-8 max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center text-primary">
+            <i class="fas fa-edit mr-2"></i>Edit Project
+        </h2>
+        <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ field.id_for_label }}">
+                        {% if field.name == 'title' %}
+                            <i class="fas fa-heading mr-2"></i>
+                        {% elif field.name == 'description' %}
+                            <i class="fas fa-align-left mr-2"></i>
+                        {% elif field.name == 'start_date' %}
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                        {% elif field.name == 'end_date' %}
+                            <i class="fas fa-calendar-check mr-2"></i>
+                        {% elif field.name == 'status' %}
+                            <i class="fas fa-tasks mr-2"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle mr-2"></i>
+                        {% endif %}
+                        {{ field.label }}
+                    </label>
+                    {{ field|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p class="text-red-500 text-xs italic">{{ error }}</p>
+                        {% endfor %}
                     {% endif %}
-                    {{ field.label }}
-                </label>
-                {{ field|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
-                {% if field.errors %}
-                    {% for error in field.errors %}
-                        <p class="text-red-500 text-xs italic">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
+                </div>
+            {% endfor %}
+            <div class="flex items-center justify-between">
+                <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+                <a href="{% url 'all_projects' %}" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Projects
+                </a>
             </div>
-        {% endfor %}
-        <div class="flex items-center justify-between">
-            <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
-                <i class="fas fa-save mr-2"></i>Save Changes
-            </button>
-            <a href="{% url 'all_projects' %}" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Projects
-            </a>
-        </div>
-    </form>
-</div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 {% endblock %}
