@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-tertiary mb-8">All Projects</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for project in projects %}
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                    <div class="bg-tertiary text-white p-4">
+                        <h2 class="text-xl font-semibold">{{ project.name }}</h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">{{ project.description|truncatechars:100 }}</p>
+                        <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                            <div>
+                                <p class="font-semibold text-tertiary"><i class="fas fa-money-bill-wave mr-2"></i>Budget</p>
+                                <p>₱{{ project.budget }}</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-tertiary"><i class="fas fa-receipt mr-2"></i>Expenses</p>
+                                <p>₱{{ project.total_expenses }}</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-tertiary"><i class="fas fa-calendar-alt mr-2"></i>Start Date</p>
+                                <p>{{ project.start_date }}</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-tertiary"><i class="fas fa-flag-checkered mr-2"></i>End Date</p>
+                                <p>{{ project.end_date }}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <a href="{% url 'project_detail' project.id %}" class="bg-tertiary text-white px-4 py-2 rounded-full hover:bg-quaternary transition duration-300">
+                                <i class="fas fa-eye mr-2"></i>View Details
+                            </a>
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-clock mr-2"></i>{{ project.created_at|timesince }} ago
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="col-span-3 text-center text-gray-500 text-lg">No projects found. Start by creating your first project!</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

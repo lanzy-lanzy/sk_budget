@@ -65,32 +65,34 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
+    def total_expenses(self):
+        return self.expenses.aggregate(models.Sum('amount'))['amount__sum'] or 0
+
     @property
     def remaining_budget(self):
-        total_expenses = self.expenses.aggregate(models.Sum('amount'))['amount__sum'] or 0
-        return self.budget - total_expenses
+        return self.budget - self.total_expenses()
 
     class Meta:
         ordering = ['start_date']
-
 
 class Expense(models.Model):
     """
     Expense model to track expenditures related to projects.
     """
     project = models.ForeignKey(Project, related_name='expenses', on_delete=models.CASCADE)
-    description = models.CharField(max_length=255)
+    item_name = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField(default=1)
+    description = models.TextField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date_incurred = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.description} - {self.amount} (Date: {self.date_incurred})"
+        return f"{self.item_name} - {self.amount} for {self.project.name}"
 
     class Meta:
         ordering = ['date_incurred']
-
 
 class AccomplishmentReport(models.Model):
     """

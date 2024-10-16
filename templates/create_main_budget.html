@@ -3,13 +3,13 @@
 {% block title %}Create Main Budget - SK Budget{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-3xl font-bold text-tertiary mb-6">Create Main Budget</h2>
-    
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="bg-tertiary text-white px-4 py-2 rounded hover:bg-quaternary">Create Budget</button>
-    </form>
-</div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-3xl font-bold text-tertiary mb-6">Create Main Budget</h2>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-tertiary text-white px-4 py-2 rounded hover:bg-quaternary">Create Budget</button>
+        </form>
+    </div>
 {% endblock %}

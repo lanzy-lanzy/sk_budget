@@ -3,148 +3,191 @@
 {% block title %}Dashboard - SK Budget{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-3xl font-bold text-tertiary mb-6">Welcome to SK Budget Dashboard</h2>
-    
-    <!-- Existing budget cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Main Budget Card -->
-        <div class="bg-primary rounded-lg p-4 shadow">
-            <h3 class="text-xl font-semibold mb-2">Main Budget</h3>
-            {% if main_budget %}
-                <p class="text-2xl font-bold">₱ {{ main_budget.total_budget }}</p>
-                <p class="text-sm">Year: {{ main_budget.year }}</p>
-            {% else %}
-                <p class="text-2xl font-bold">No budget set</p>
-                <p class="text-sm">Please create a main budget</p>
-                <button onclick="openModal()" class="mt-2 inline-block bg-tertiary text-white px-4 py-2 rounded hover:bg-quaternary">Create Main Budget</button>
-            {% endif %}
-        </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-3xl font-bold text-tertiary mb-6">Welcome to SK Budget Dashboard</h2>
 
-        <!-- Projects Card -->
-        <div class="bg-quaternary rounded-lg p-4 shadow">
-            <h3 class="text-xl font-semibold mb-2">Active Projects</h3>
-            <p class="text-2xl font-bold">{{ active_projects_count }}</p>
-            <a href="#" class="text-sm text-tertiary hover:underline">View all projects</a>
-        </div>
-
-        <!-- Expenses Card -->
-        <div class="bg-secondary rounded-lg p-4 shadow">
-            <h3 class="text-xl font-semibold mb-2">Total Expenses</h3>
-            <p class="text-2xl font-bold">₱ {{ total_expenses }}</p>
-            <a href="#" class="text-sm text-tertiary hover:underline">View expense details</a>
-        </div>
-    </div>
-
-    <!-- Projects Section -->
-    <div class="mt-8">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-2xl font-bold text-tertiary">Projects</h3>
-            <button onclick="openProjectModal()" class="bg-tertiary text-white px-4 py-2 rounded-full hover:bg-quaternary transition duration-300">
-                <i class="fas fa-plus mr-2"></i>Add New Project
-            </button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for project in projects %}
-            <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-tertiary">
-                <h4 class="text-lg font-semibold mb-2">{{ project.name }}</h4>
-                <p class="text-sm text-gray-600 mb-2">{{ project.description|truncatechars:100 }}</p>
-                <p class="text-sm"><strong>Budget:</strong> ₱{{ project.budget }}</p>
-                <p class="text-sm"><strong>Start Date:</strong> {{ project.start_date }}</p>
-                <p class="text-sm"><strong>End Date:</strong> {{ project.end_date }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Main Budget Card -->
+            <div class="bg-primary rounded-lg p-6 shadow-lg">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <i class="fas fa-chart-pie mr-2"></i>Main Budget
+                </h3>
+                {% if main_budget %}
+                    <p class="text-3xl font-bold mb-2">₱{{ main_budget.total_budget|floatformat:2 }}</p>
+                    <p class="text-sm text-gray-700">Year: {{ main_budget.year }}</p>
+                    <div class="mt-4 bg-white rounded-full h-2">
+                        <div class="bg-tertiary h-2 rounded-full" style="width: {{ main_budget.usage_percentage }}%;"></div>
+                    </div>
+                    <p class="text-sm mt-2">{{ main_budget.usage_percentage }}% used</p>
+                {% else %}
+                    <p class="text-xl font-bold mb-2">No budget set</p>
+                    <p class="text-sm mb-4">Please create a main budget</p>
+                    <button onclick="openModal()" class="bg-tertiary text-white px-4 py-2 rounded hover:bg-quaternary transition duration-300">
+                        <i class="fas fa-plus mr-2"></i>Create Main Budget
+                    </button>
+                {% endif %}
             </div>
-            {% empty %}
-            <p class="col-span-3 text-center text-gray-500">No projects yet. Create your first project!</p>
-            {% endfor %}
+
+            <!-- Active Projects Card -->
+            <div class="bg-quaternary text-white rounded-lg p-6 shadow-lg">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <i class="fas fa-project-diagram mr-2"></i>Active Projects
+                </h3>
+                <p class="text-3xl font-bold mb-2">{{ active_projects_count }}</p>
+                <a href="{% url 'all_projects' %}" class="inline-block mt-4 text-sm bg-white text-tertiary px-3 py-1 rounded hover:bg-gray-100 transition duration-300">
+                    View all projects
+                </a>
+            </div>
+
+            <!-- Total Expenses Card -->
+            <div class="bg-secondary rounded-lg p-6 shadow-lg">
+                <h3 class="text-xl font-semibold mb-3 flex items-center">
+                    <i class="fas fa-receipt mr-2"></i>Total Expenses
+                </h3>
+                <p class="text-3xl font-bold mb-2">₱{{ total_expenses|floatformat:2 }}</p>
+                <a href="#" class="inline-block mt-4 text-sm bg-tertiary text-white px-3 py-1 rounded hover:bg-quaternary transition duration-300">
+                    View expense details
+                </a>
+            </div>
         </div>
+
+
+<!-- Projects Section -->
+        <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-tertiary">Projects</h3>
+                <button onclick="openProjectModal()" class="bg-tertiary text-white px-4 py-2 rounded-full hover:bg-quaternary transition duration-300">
+                    <i class="fas fa-plus mr-2"></i>Add New Project
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for project in projects %}
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                        <div class="bg-tertiary text-white p-4">
+                            <h4 class="text-xl font-semibold">{{ project.name }}</h4>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-sm text-gray-600 mb-4">{{ project.description|truncatechars:100 }}</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                    <p class="font-semibold text-tertiary"><i class="fas fa-money-bill-wave mr-2"></i>Budget</p>
+                                    <p>₱{{ project.budget }}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-tertiary"><i class="fas fa-receipt mr-2"></i>Expenses</p>
+                                    <p>₱{{ project.total_expenses }}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-tertiary"><i class="fas fa-calendar-alt mr-2"></i>Start Date</p>
+                                    <p>{{ project.start_date }}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-tertiary"><i class="fas fa-flag-checkered mr-2"></i>End Date</p>
+                                    <p>{{ project.end_date }}</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-between">
+                                <a href="{% url 'add_expense' project.id %}" class="text-sm text-tertiary hover:text-quaternary transition duration-300">
+                                    <i class="fas fa-plus-circle mr-1"></i>Add Expense
+                                </a>
+                                <a href="{% url 'project_detail' project.id %}" class="text-sm text-tertiary hover:text-quaternary transition duration-300">
+                                    <i class="fas fa-eye mr-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="col-span-3 text-center text-gray-500">No projects yet. Create your first project!</p>
+                {% endfor %}
+            </div>
+        </div>
+
     </div>
-</div>
 
 <!-- Modal -->
-<div id="budgetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Create Main Budget</h3>
-            <div class="mt-2 px-7 py-3">
-                <form id="budgetForm" method="post" action="{% url 'create_main_budget' %}">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        <label for="year" class="block text-gray-700 text-sm font-bold mb-2">Year</label>
-                        <input type="number" id="year" name="year" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="mb-4">
-                        <label for="total_budget" class="block text-gray-700 text-sm font-bold mb-2">Total Budget</label>
-                        <input type="number" id="total_budget" name="total_budget" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create Budget</button>
-                </form>
+    <div id="budgetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Create Main Budget</h3>
+                <div class="mt-2 px-7 py-3">
+                    <form id="budgetForm" method="post" action="{% url 'create_main_budget' %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="year" class="block text-gray-700 text-sm font-bold mb-2">Year</label>
+                            <input type="number" id="year" name="year" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="mb-4">
+                            <label for="total_budget" class="block text-gray-700 text-sm font-bold mb-2">Total Budget</label>
+                            <input type="number" id="total_budget" name="total_budget" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create Budget</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 <!-- Project Creation Modal -->
-<div id="projectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Create New Project</h3>
-            <div class="mt-2 px-7 py-3">
-                <form id="projectForm" method="post" action="{% url 'create_project' %}">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Project Name</label>
-                        <input type="text" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="mb-4">
-                        <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
-                        <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
-                    </div>
-                    <div class="mb-4">
-                        <label for="budget" class="block text-gray-700 text-sm font-bold mb-2">Budget</label>
-                        <input type="number" id="budget" name="budget" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="mb-4">
-                        <label for="start_date" class="block text-gray-700 text-sm font-bold mb-2">Start Date</label>
-                        <input type="date" id="start_date" name="start_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <div class="mb-4">
-                        <label for="end_date" class="block text-gray-700 text-sm font-bold mb-2">End Date</label>
-                        <input type="date" id="end_date" name="end_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    </div>
-                    <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create Project</button>
-                </form>
+    <div id="projectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Create New Project</h3>
+                <div class="mt-2 px-7 py-3">
+                    <form id="projectForm" method="post" action="{% url 'create_project' %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Project Name</label>
+                            <input type="text" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" oninput="this.value=this.value.replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });">
+                        </div>
+                        <div class="mb-4">
+                            <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                            <textarea id="description" name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3" oninput="this.value=this.value.replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="budget" class="block text-gray-700 text-sm font-bold mb-2">Budget</label>
+                            <input type="number" id="budget" name="budget" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="mb-4">
+                            <label for="start_date" class="block text-gray-700 text-sm font-bold mb-2">Start Date</label>
+                            <input type="date" id="start_date" name="start_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <div class="mb-4">
+                            <label for="end_date" class="block text-gray-700 text-sm font-bold mb-2">End Date</label>
+                            <input type="date" id="end_date" name="end_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        </div>
+                        <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create Project</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+    <script>
+        function openModal() {
+            document.getElementById('budgetModal').classList.remove('hidden');
+        }
 
-<script>
-    function openModal() {
-        document.getElementById('budgetModal').classList.remove('hidden');
-    }
+        function closeModal() {
+            document.getElementById('budgetModal').classList.add('hidden');
+        }
 
-    function closeModal() {
-        document.getElementById('budgetModal').classList.add('hidden');
-    }
+        function openProjectModal() {
+            document.getElementById('projectModal').classList.remove('hidden');
+        }
 
-    function openProjectModal() {
-        document.getElementById('projectModal').classList.remove('hidden');
-    }
-
-    function closeProjectModal() {
-        document.getElementById('projectModal').classList.add('hidden');
-    }
+        function closeProjectModal() {
+            document.getElementById('projectModal').classList.add('hidden');
+        }
 
     // Close modal when clicking outside
-    window.onclick = function(event) {
-        var budgetModal = document.getElementById('budgetModal');
-        var projectModal = document.getElementById('projectModal');
-        if (event.target == budgetModal) {
-            closeModal();
+        window.onclick = function(event) {
+            var budgetModal = document.getElementById('budgetModal');
+            var projectModal = document.getElementById('projectModal');
+            if (event.target == budgetModal) {
+                closeModal();
+            }
+            if (event.target == projectModal) {
+                closeProjectModal();
+            }
         }
-        if (event.target == projectModal) {
-            closeProjectModal();
-        }
-    }
-</script>
+    </script>
 {% endblock %}
