@@ -5,7 +5,7 @@ from .models import MainBudget, Project
 from .forms import MainBudgetForm, ProjectForm
 from django.db import models
 from django.shortcuts import get_object_or_404
-from .forms import ExpenseForm
+from .forms import ExpenseForm, AccomplishmentReportForm
 
 @login_required
 def dashboard(request):
@@ -141,3 +141,47 @@ def all_projects(request):
         'projects': projects,
     }
     return render(request, 'all_projects.html', context)
+
+@login_required
+def all_expenses(request):
+    projects = Project.objects.filter(chairman=request.user).prefetch_related('expenses')
+    total_expenses = sum(expense.amount for project in projects for expense in project.expenses.all())
+    
+    context = {
+        'projects': projects,
+        'total_expenses': total_expenses,
+    }
+    return render(request, 'all_expenses.html', context)
+
+@login_required
+def project_accomplishment_report(request, project_id):
+    project = get_object_or_404(Project, id=project_id, chairman=request.user)
+    accomplishment_reports = project.accomplishment_reports.all().order_by('-report_date')
+    
+    context = {
+        'project': project,
+        'accomplishment_reports': accomplishment_reports,
+    }
+    return render(request, 'project_accomplishment_report.html', context)
+
+@login_required
+
+
+@login_required
+def add_accomplishment_report(request, project_id):
+    project = get_object_or_404(Project, id=project_id, chairman=request.user)
+    if request.method == 'POST':
+        form = AccomplishmentReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.project = project
+            report.save()
+            return redirect('project_accomplishment_report', project_id=project.id)
+    else:
+        form = AccomplishmentReportForm()
+    
+    context = {
+        'form': form,
+        'project': project,
+    }
+    return render(request, 'add_accomplishment_report.html', context)

@@ -1,63 +1,63 @@
+  {% extends 'base.html' %}
+  {% load humanize %}
 
-{% extends 'base.html' %}
+  {% block content %}
+      <div class="bg-white shadow-xl rounded-lg overflow-hidden">
+          <div class="bg-tertiary text-white p-6">
+              <h2 class="text-3xl font-bold flex items-center">
+                  <i class="fas fa-project-diagram mr-3"></i>{{ project.name }}
+              </h2>
+          </div>
+          <div class="p-6">
+              <p class="text-gray-700 mb-6">{{ project.description }}</p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <div class="bg-primary text-tertiary p-4 rounded-lg shadow">
+                      <p class="font-bold flex items-center"><i class="fas fa-money-bill-wave mr-2"></i>Budget</p>
+                      <p class="text-2xl">₱{{ project.budget|intcomma }}</p>
+                  </div>
+                  <div class="bg-quaternary text-white p-4 rounded-lg shadow">
+                      <p class="font-bold flex items-center"><i class="fas fa-receipt mr-2"></i>Total Expenses</p>
+                      <p class="text-2xl">₱{{ project.total_expenses|intcomma }}</p>
+                  </div>
+                  <div class="bg-secondary text-tertiary p-4 rounded-lg shadow">
+                      <p class="font-bold flex items-center"><i class="fas fa-piggy-bank mr-2"></i>Remaining Budget</p>
+                      <p class="text-2xl">₱{{ project.remaining_budget|intcomma }}</p>
+                  </div>
+              </div>
 
-{% block content %}
-    <div class="bg-white shadow-xl rounded-lg overflow-hidden">
-        <div class="bg-tertiary text-white p-6">
-            <h2 class="text-3xl font-bold flex items-center">
-                <i class="fas fa-project-diagram mr-3"></i>{{ project.name }}
-            </h2>
-        </div>
-        <div class="p-6">
-            <p class="text-gray-700 mb-6">{{ project.description }}</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="bg-primary text-tertiary p-4 rounded-lg shadow">
-                    <p class="font-bold flex items-center"><i class="fas fa-money-bill-wave mr-2"></i>Budget</p>
-                    <p class="text-2xl">₱{{ project.budget }}</p>
-                </div>
-                <div class="bg-quaternary text-white p-4 rounded-lg shadow">
-                    <p class="font-bold flex items-center"><i class="fas fa-receipt mr-2"></i>Total Expenses</p>
-                    <p class="text-2xl">₱{{ project.total_expenses }}</p>
-                </div>
-                <div class="bg-secondary text-tertiary p-4 rounded-lg shadow">
-                    <p class="font-bold flex items-center"><i class="fas fa-piggy-bank mr-2"></i>Remaining Budget</p>
-                    <p class="text-2xl">₱{{ project.remaining_budget }}</p>
-                </div>
-            </div>
+              <h3 class="text-2xl font-bold mb-4 flex items-center">
+                  <i class="fas fa-list-ul mr-3"></i>Expenses
+              </h3>
+              <div class="overflow-x-auto">
+              <!-- Inside the expense table -->
+                  <table class="min-w-full bg-white">
+                      <thead class="bg-tertiary text-white">
+                          <tr>
+                              <th class="py-3 px-4 text-left">Date</th>
+                              <th class="py-3 px-4 text-left">Item</th>
+                              <th class="py-3 px-4 text-left">Quantity</th>
+                              <th class="py-3 px-4 text-left">Description</th>
+                              <th class="py-3 px-4 text-left">Amount</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for expense in expenses %}
+                              <tr class="{% cycle 'bg-gray-100' '' %}">
+                                  <td class="py-3 px-4">{{ expense.date_incurred }}</td>
+                                  <td class="py-3 px-4">{{ expense.item_name }}</td>
+                                  <td class="py-3 px-4">{{ expense.quantity }}</td>
+                                  <td class="py-3 px-4">{{ expense.description }}</td>
+                                  <td class="py-3 px-4">₱{{ expense.amount|intcomma }}</td>
+                              </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
 
-            <h3 class="text-2xl font-bold mb-4 flex items-center">
-                <i class="fas fa-list-ul mr-3"></i>Expenses
-            </h3>
-            <div class="overflow-x-auto">
-            <!-- Inside the expense table -->
-                <table class="min-w-full bg-white">
-                    <thead class="bg-tertiary text-white">
-                        <tr>
-                            <th class="py-3 px-4 text-left">Date</th>
-                            <th class="py-3 px-4 text-left">Item</th>
-                            <th class="py-3 px-4 text-left">Quantity</th>
-                            <th class="py-3 px-4 text-left">Description</th>
-                            <th class="py-3 px-4 text-left">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for expense in expenses %}
-                            <tr class="{% cycle 'bg-gray-100' '' %}">
-                                <td class="py-3 px-4">{{ expense.date_incurred }}</td>
-                                <td class="py-3 px-4">{{ expense.item_name }}</td>
-                                <td class="py-3 px-4">{{ expense.quantity }}</td>
-                                <td class="py-3 px-4">{{ expense.description }}</td>
-                                <td class="py-3 px-4">₱{{ expense.amount }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+              </div>
 
-            </div>
-
-            <a href="{% url 'add_expense' project.id %}" class="inline-block mt-6 px-6 py-3 bg-tertiary text-white rounded-lg hover:bg-quaternary transition duration-300">
-                <i class="fas fa-plus-circle mr-2"></i>Add New Expense
-            </a>
-        </div>
-    </div>
-{% endblock %}
+              <a href="{% url 'add_expense' project.id %}" class="inline-block mt-6 px-6 py-3 bg-tertiary text-white rounded-lg hover:bg-quaternary transition duration-300">
+                  <i class="fas fa-plus-circle mr-2"></i>Add New Expense
+              </a>
+          </div>
+      </div>
+  {% endblock %}

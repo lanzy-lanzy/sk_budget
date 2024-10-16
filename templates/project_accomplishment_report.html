@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-tertiary mb-8">Project Accomplishment Report</h1>
+    
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div class="bg-tertiary text-white p-6">
+            <h2 class="text-2xl font-semibold">{{ project.name }}</h2>
+            <p class="text-sm mt-2">{{ project.description }}</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-primary rounded-lg p-4">
+                    <p class="font-semibold text-tertiary">Budget</p>
+                    <p class="text-2xl font-bold">₱{{ project.budget|floatformat:2|intcomma }}</p>
+                </div>
+                <div class="bg-secondary rounded-lg p-4">
+                    <p class="font-semibold text-tertiary">Total Expenses</p>
+                    <p class="text-2xl font-bold">₱{{ project.total_expenses|floatformat:2|intcomma }}</p>
+                </div>
+                <div class="bg-quaternary rounded-lg p-4">
+                    <p class="font-semibold text-white">Remaining Budget</p>
+                    <p class="text-2xl font-bold text-white">₱{{ project.remaining_budget|floatformat:2|intcomma }}</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-2">Project Timeline</h3>
+                <p><strong>Start Date:</strong> {{ project.start_date }}</p>
+                <p><strong>End Date:</strong> {{ project.end_date }}</p>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-4">Accomplishment Reports</h3>
+            {% for report in accomplishment_reports %}
+            <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                <h4 class="text-lg font-semibold mb-2">Report Date: {{ report.report_date }}</h4>
+                <p>{{ report.report_details|linebreaks }}</p>
+            </div>
+            {% empty %}
+            <p class="text-gray-500">No accomplishment reports have been submitted for this project yet.</p>
+            {% endfor %}
+
+            <a href="{% url 'add_accomplishment_report' project.id %}" class="inline-block mt-4 bg-tertiary text-white px-4 py-2 rounded hover:bg-quaternary transition duration-300">
+                <i class="fas fa-plus mr-2"></i>Add New Accomplishment Report
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

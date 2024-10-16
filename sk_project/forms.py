@@ -1,5 +1,5 @@
 from django import forms
-from .models import MainBudget
+from .models import MainBudget, AccomplishmentReport
 
 class MainBudgetForm(forms.ModelForm):
     class Meta:
@@ -37,4 +37,13 @@ class ExpenseForm(forms.ModelForm):
             'description': forms.TextInput(attrs={'class': 'w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-tertiary'}),
             'amount': forms.NumberInput(attrs={'class': 'w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-tertiary'}),
             'date_incurred': forms.DateInput(attrs={'type': 'date', 'class': 'w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-tertiary'}),
+        }
+
+class AccomplishmentReportForm(forms.ModelForm):
+    class Meta:
+        model = AccomplishmentReport
+        fields = ['report_date', 'report_details']
+        widgets = {
+            'report_date': forms.DateInput(attrs={'type': 'date'}),
+            'report_details': forms.Textarea(attrs={'rows': 4}),
         }
