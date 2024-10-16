@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SK Budget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#F3CA52',
+                        secondary: '#F6E9B2',
+                        tertiary: '#0A6847',
+                        quaternary: '#7ABA78',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-r from-secondary to-primary min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96 border-t-4 border-tertiary">
+        <h2 class="text-3xl font-bold text-tertiary mb-6 text-center"><i class="fas fa-user-circle mr-2 text-green-500"></i>Login</h2>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="relative">
+                <i class="fas fa-envelope absolute top-3 left-3 text-green-500"></i>
+                <input type="text" name="{{ form.username.name }}" class="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-tertiary" placeholder="Username">
+            </div>
+            <div class="relative">
+                <i class="fas fa-lock absolute top-3 left-3 text-green-500"></i>
+                <input type="password" name="{{ form.password.name }}" class="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-tertiary" placeholder="Password">
+            </div>
+            <button type="submit" class="w-full bg-tertiary text-white px-4 py-2 rounded-full hover:bg-quaternary transition duration-300 flex items-center justify-center">
+                <i class="fas fa-sign-in-alt mr-2"></i>Login
+            </button>
+        </form>
+        <p class="mt-6 text-center text-gray-600">
+            Don't have an account? <a href="{% url 'register' %}" class="text-tertiary hover:underline font-semibold">Register</a>
+        </p>
+    </div>
+</body>
+</html>
