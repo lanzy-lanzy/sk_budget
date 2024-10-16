@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+    {% load static %}
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,19 +25,45 @@
     <body class="bg-secondary">
         <div class="flex h-screen">
         <!-- Sidebar -->
-            <aside class="w-64 bg-tertiary text-white">
-                <div class="p-4">
-                    <h1 class="text-2xl font-bold">SK Budget</h1>
+            <aside class="w-64 bg-tertiary text-white flex flex-col">
+                <div class="p-4 flex flex-col items-center">
+                    <a href="{% url 'edit_profile' %}" class="mb-3 relative">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
+                        {% else %}
+                        <img src="{% static 'img/drr.png' %}" alt="Default Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
+                        {% endif %}
+                        <i class="fas fa-pencil-alt absolute bottom-0 right-0 bg-quaternary text-white p-2 rounded-full"></i>
+                    </a>                    
+                    <div class="text-center relative">
+                        <h2 class="text-lg font-semibold">{{ user.get_full_name|title }}</h2>
+                        <p class="text-xs text-gray-300">{{ user.address|truncatechars:20|capfirst }}</p>
+                        <a href="{% url 'edit_profile' %}" class="absolute -right-6 top-0">
+                            <i class="fas fa-pencil-alt text-quaternary hover:text-primary transition-colors duration-200"></i>
+                        </a>
+                    </div>
                 </div>
-                <nav class="mt-6">
-                    <a href="{% url 'dashboard' %}" class="block py-2 px-4 hover:bg-quaternary"><i class="fas fa-home mr-2"></i> Dashboard</a>
-                    <a href="{% url 'all_projects' %}" class="block py-2 px-4 hover:bg-quaternary"><i class="fas fa-project-diagram mr-2"></i> Projects</a>
-                    <a href="{% url 'all_expenses' %}" class="block py-2 px-4 hover:bg-quaternary"><i class="fas fa-receipt mr-2"></i> All Expenses</a>
-                    <a href="#" class="block py-2 px-4 hover:bg-quaternary"><i class="fas fa-file-alt mr-2"></i> Reports</a>
-                    <a href="#" class="block py-2 px-4 hover:bg-quaternary"><i class="fas fa-user mr-2"></i> Profile</a>
+                <nav class="mt-6 flex-grow">
+                    <a href="{% url 'dashboard' %}" class="block py-2 px-4 hover:bg-quaternary transition-colors duration-200">
+                        <i class="fas fa-home mr-2"></i> Dashboard
+                    </a>
+                    <a href="{% url 'all_projects' %}" class="block py-2 px-4 hover:bg-quaternary transition-colors duration-200">
+                        <i class="fas fa-project-diagram mr-2"></i> Projects
+                    </a>
+                    <a href="{% url 'all_expenses' %}" class="block py-2 px-4 hover:bg-quaternary transition-colors duration-200">
+                        <i class="fas fa-receipt mr-2"></i> All Expenses
+                    </a>
+                    <a href="{% url 'export_pdf_report' %}" class="block py-2 px-4 hover:bg-quaternary transition-colors duration-200">
+                        <i class="fas fa-file-pdf mr-2"></i> Export PDF Report
+                    </a>
+                    
                 </nav>
+                <div class="p-4 mt-auto">
+                    <a href="{% url 'logout' %}" class="block py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200 text-center">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </a>
+                </div>
             </aside>
-
         <!-- Main Content -->
             <main class="flex-1 p-8 overflow-y-auto">
                 {% block content %}

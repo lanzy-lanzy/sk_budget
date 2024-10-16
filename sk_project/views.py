@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import MainBudget, Project
@@ -112,7 +113,9 @@ def user_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
-
+def user_logout(request):
+    logout(request)
+    return redirect('login')
 @login_required
 def add_expense(request, project_id):
     project = get_object_or_404(Project, id=project_id, chairman=request.user)
@@ -121,8 +124,11 @@ def add_expense(request, project_id):
         if form.is_valid():
             expense = form.save(commit=False)
             expense.project = project
+            expense.amount = expense.price_per_unit * expense.quantity
             if expense.amount <= project.remaining_budget:
                 expense.save()
+                project.budget -= expense.amount
+                project.save()
                 messages.success(request, 'Expense added successfully!')
             else:
                 messages.error(request, 'Expense amount exceeds remaining budget!')
@@ -130,6 +136,7 @@ def add_expense(request, project_id):
     else:
         form = ExpenseForm()
     return render(request, 'add_expense.html', {'form': form, 'project': project})
+
 
 @login_required
 def all_projects(request):
@@ -185,3 +192,135 @@ def add_accomplishment_report(request, project_id):
         'project': project,
     }
     return render(request, 'add_accomplishment_report.html', context)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import UserProfileForm
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = UserProfileForm(instance=request.user)
+    
+    return render(request, 'edit_profile.html', {'form': form})
+
+
+
+from django.http import FileResponse
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+
+from io import BytesIO
+from django.http import HttpResponse
+
+@login_required
+def export_pdf_report(request):
+    buffer = BytesIO()
+    projects = Project.objects.filter(chairman=request.user)
+    generate_pdf_report(buffer, request.user, projects)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="sk_budget_report.pdf"'
+    return response
+
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+
+def generate_pdf_report(response, user, projects):
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor("#2C3E50"), spaceAfter=12)
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=18, textColor=colors.HexColor("#34495E"), spaceBefore=12, spaceAfter=6)
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor("#2C3E50"))
+    subheading_style = ParagraphStyle('Subheading', parent=styles['Heading3'], fontSize=14, textColor=colors.HexColor("#16A085"), spaceBefore=8, spaceAfter=4)
+
+    elements.append(Paragraph("SK Budget Report", title_style))
+    elements.append(Spacer(1, 0.3*inch))
+
+    elements.append(Paragraph(f"Chairman: {user.get_full_name()}", heading_style))
+    elements.append(Paragraph(f"Email: {user.email}", normal_style))
+    elements.append(Paragraph(f"Contact: {user.contact_number}", normal_style))
+    elements.append(Spacer(1, 0.3*inch))
+
+    for project in projects:
+        elements.append(Paragraph(f"Project: {project.name}", subheading_style))
+        
+        project_data = [
+            ["Budget", "Expenses", "Remaining"],
+            [f"{project.budget:,.2f}", f"{project.total_expenses():,.2f}", f"{project.remaining_budget:,.2f}"]
+        ]
+        
+        project_table = Table(project_data, colWidths=[2*inch, 2*inch, 2*inch])
+        project_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#3498DB")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('BOTTOMPADDING', (0,0), (-1,0), 8),
+            ('BACKGROUND', (0,1), (-1,-1), colors.HexColor("#ECF0F1")),
+            ('TEXTCOLOR', (0,1), (-1,-1), colors.HexColor("#2C3E50")),
+            ('ALIGN', (0,1), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('TOPPADDING', (0,1), (-1,-1), 6),
+            ('BOTTOMPADDING', (0,1), (-1,-1), 6),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#BDC3C7"))
+        ]))
+        elements.append(project_table)
+        elements.append(Spacer(1, 0.2*inch))
+        
+        expense_data = [["Expense Details", "Amount"]]
+        for expense in project.expenses.all():
+            expense_details = f"{expense.quantity} x {expense.price_per_unit} - {expense.description}"
+            expense_data.append([expense_details, f"{expense.amount:,.2f}"])
+
+
+        
+        expense_table = Table(expense_data, colWidths=[4*inch, 2*inch])
+        expense_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#16A085")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 11),
+            ('BOTTOMPADDING', (0,0), (-1,0), 8),
+            ('BACKGROUND', (0,1), (-1,-1), colors.HexColor("#E8F6F3")),
+            ('TEXTCOLOR', (0,1), (-1,-1), colors.HexColor("#2C3E50")),
+            ('ALIGN', (0,1), (0,-1), 'LEFT'),
+            ('ALIGN', (1,1), (1,-1), 'RIGHT'),
+            ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('TOPPADDING', (0,1), (-1,-1), 4),
+            ('BOTTOMPADDING', (0,1), (-1,-1), 4),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#BDC3C7"))
+        ]))
+        elements.append(expense_table)
+        elements.append(Spacer(1, 0.3*inch))
+
+    doc.build(elements)
+# Usage in your view:
+# from django.http import FileResponse
+# def export_pdf_report(request):
+#     response = FileResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'attachment; filename="sk_budget_report.pdf"'
+#     generate_pdf_report(response, request.user, Project.objects.filter(chairman=request.user))
+#     return response

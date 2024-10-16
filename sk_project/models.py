@@ -7,7 +7,9 @@ class User(AbstractUser):
     User model to represent SK chairmen.
     """
     is_chairman = models.BooleanField(default=False)
-
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default_avatar.png', blank=True)
+    address = models.TextField(blank=True, null=True)
+    contact_number = models.CharField(max_length=15, blank=True, null=True)
     groups = models.ManyToManyField(
         Group,
         verbose_name=_('groups'),
@@ -29,8 +31,7 @@ class User(AbstractUser):
     )
 
     def __str__(self):
-        return self.username
-
+        return self.get_full_name()
 class MainBudget(models.Model):
     """
     Main budget model to represent the total budget for a specific year.
@@ -81,6 +82,7 @@ class Expense(models.Model):
     """
     project = models.ForeignKey(Project, related_name='expenses', on_delete=models.CASCADE)
     item_name = models.CharField(max_length=255)
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     quantity = models.PositiveIntegerField(default=1)
     description = models.TextField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -118,7 +120,9 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default_avatar.png', blank=True)
+    updated_at = models.DateTimeField(auto_now=True)    
+    
     def __str__(self):
         return f"{self.user.username}'s Profile"
 

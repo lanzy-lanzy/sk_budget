@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
     <div class="container mx-auto mt-8 max-w-xl">
@@ -19,9 +20,17 @@
                         </label>
                         <div class="relative rounded-md shadow-sm">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-{% if field.name == 'item_name' %}tag{% elif field.name == 'quantity' %}hashtag{% elif field.name == 'description' %}file-alt{% elif field.name == 'amount' %}money-bill-wave{% else %}calendar-alt{% endif %} text-gray-400"></i>
+                                <i class="fas fa-{% if field.name == 'item_name' %}tag{% elif field.name == 'quantity' %}hashtag{% elif field.name == 'description' %}file-alt{% elif field.name == 'price_per_unit' %}dollar-sign{% elif field.name == 'amount' %}money-bill-wave{% else %}calendar-alt{% endif %} text-gray-400"></i>
                             </div>
-                            {{ field }}
+                            {% if field.name == 'item_name' or field.name == 'description' %}
+                                <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-tertiary" oninput="capitalizeWords(this)" value="{{ field.value|default:'' }}">
+                            {% elif field.name == 'price_per_unit' or field.name == 'quantity' %}
+                                <input type="number" name="{{ field.name }}" id="{{ field.id_for_label }}" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-tertiary" oninput="calculateTotal()" value="{{ field.value|default:'' }}">
+                            {% elif field.name == 'amount' %}
+                                <input type="number" name="{{ field.name }}" id="{{ field.id_for_label }}" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-tertiary" readonly value="{{ field.value|default:'' }}">
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
                         </div>
                         {% if field.errors %}
                             {% for error in field.errors %}
@@ -41,4 +50,17 @@
             </form>
         </div>
     </div>
+
+    <script>
+        function capitalizeWords(input) {
+            input.value = input.value.replace(/\b\w/g, function(l){ return l.toUpperCase() })
+        }
+
+        function calculateTotal() {
+            var price = parseFloat(document.getElementById('id_price_per_unit').value) || 0;
+            var quantity = parseInt(document.getElementById('id_quantity').value) || 0;
+            var total = price * quantity;
+            document.getElementById('id_amount').value = total.toFixed(2);
+        }
+    </script>
 {% endblock %}
