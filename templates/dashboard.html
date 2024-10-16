@@ -6,7 +6,18 @@
 {% block content %}
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-3xl font-bold text-tertiary mb-6">Welcome to SK Budget Dashboard</h2>
-
+        {% if messages %}
+            <div id="messages-container" class="mb-8">
+                {% for message in messages %}
+                    <div class="message {% if message.tags == 'success' %}bg-green-100 border-green-500 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-red-500 text-red-700{% else %}bg-blue-100 border-blue-500 text-blue-700{% endif %} border-l-4 p-4 mb-4 rounded-r" role="alert">
+                        <p class="font-bold">{{ message.tags|title }}</p>
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    
+    
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <!-- Main Budget Card -->
             <div class="bg-primary rounded-lg p-6 shadow-lg">
@@ -15,17 +26,25 @@
                 </h3>
                 {% if main_budget %}
                     <p class="text-3xl font-bold mb-2">₱{{ main_budget.total_budget|floatformat:2|intcomma }}</p>
-                    <p class="text-sm text-gray-700">Year: {{ main_budget.year }}</p>
-                    <div class="mt-4 bg-white rounded-full h-2">
-                        <div class="bg-tertiary h-2 rounded-full" style="width: {{ main_budget.usage_percentage }}%;"></div>
+                    <p class="text-sm text-gray-700"><i class="far fa-calendar-alt mr-2"></i>Year: {{ main_budget.year }}</p>
+                    <p class="text-sm text-gray-700 mb-3"><i class="fas fa-coins mr-2"></i>Remaining: ₱{{ remaining_budget|floatformat:2|intcomma }}</p>
+                    <div class="mb-3 bg-white rounded-full h-3">
+                        <div class="bg-tertiary h-3 rounded-full transition-all duration-500" style="width: {{ usage_percentage|floatformat:2 }}%;"></div>
                     </div>
-                    <p class="text-sm mt-2">{{ main_budget.usage_percentage }}% used</p>
+                    <p class="text-sm mb-4"><i class="fas fa-chart-pie mr-2"></i>{{ usage_percentage|floatformat:2 }}% used</p>
+                    <div class="flex justify-center">
+                        <button onclick="openNewYearBudgetModal()" class="bg-tertiary text-white px-4 py-2 rounded-full hover:bg-quaternary transition duration-300 transform hover:scale-105 shadow-md">
+                            <i class="fas fa-plus mr-2"></i>Create New Year Budget
+                        </button>
+                    </div>
                 {% else %}
                     <p class="text-xl font-bold mb-2">No budget set</p>
                     <p class="text-sm mb-4">Please create a main budget</p>
-                    <button onclick="openModal()" class="bg-tertiary text-white px-4 py-2 rounded hover:bg-quaternary transition duration-300">
-                        <i class="fas fa-plus mr-2"></i>Create Main Budget
-                    </button>
+                    <div class="flex justify-center">
+                        <button onclick="openModal()" class="bg-tertiary text-white px-4 py-2 rounded-full hover:bg-quaternary transition duration-300 transform hover:scale-105 shadow-md">
+                            <i class="fas fa-plus mr-2"></i>Create Main Budget
+                        </button>
+                    </div>
                 {% endif %}
             </div>
 
@@ -36,7 +55,7 @@
                 </h3>
                 <p class="text-3xl font-bold mb-2">{{ active_projects_count|intcomma }}</p>
                 <a href="{% url 'all_projects' %}" class="inline-block mt-4 text-sm bg-white text-tertiary px-3 py-1 rounded hover:bg-gray-100 transition duration-300">
-                    View all projects
+                    <i class="fas fa-eye mr-2"></i>View all projects
                 </a>
             </div>
 
@@ -46,12 +65,19 @@
                     <i class="fas fa-receipt mr-2"></i>Total Expenses
                 </h3>
                 <p class="text-3xl font-bold mb-2">₱{{ total_expenses|floatformat:2|intcomma }}</p>
-                <a href="#" class="inline-block mt-4 text-sm bg-tertiary text-white px-3 py-1 rounded hover:bg-quaternary transition duration-300">
-                    View expense details
+                <a href="{% url 'all_expenses' %}" class="inline-block mt-4 text-sm bg-tertiary text-white px-3 py-1 rounded hover:bg-quaternary transition duration-300">
+                    <i class="fas fa-eye mr-2"></i>View expense details
                 </a>
             </div>
         </div>
 
+
+        {% comment %} <div class="mt-8">
+            <h3 class="text-2xl font-bold text-tertiary mb-4">Monthly Expenses Overview</h3>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <img src="data:image/png;base64,{{ expense_chart }}" alt="Monthly Expenses Chart" class="w-full">
+            </div>
+        </div> {% endcomment %}
 
 <!-- Projects Section -->
         <div class="mt-8">
@@ -94,7 +120,14 @@
                                 <a href="{% url 'project_detail' project.id %}" class="text-sm text-tertiary hover:text-quaternary transition duration-300">
                                     <i class="fas fa-eye mr-1"></i>View Details
                                 </a>
+                                <a href="{% url 'edit_project' project.id %}" class="text-sm text-tertiary hover:text-quaternary transition duration-300">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </a>
+                                <button onclick="confirmDelete({{ project.id }})" class="text-sm text-red-500 hover:text-red-700 transition duration-300">
+                                    <i class="fas fa-trash-alt mr-1"></i>Delete
+                                </button>
                             </div>
+                            
                         </div>
                     </div>
                 {% empty %}
@@ -162,6 +195,30 @@
             </div>
         </div>
     </div>
+
+    <!-- New Year Budget Modal -->
+<div id="newYearBudgetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Create New Year Budget</h3>
+            <div class="mt-2 px-7 py-3">
+                <form id="newYearBudgetForm" method="post" action="{% url 'create_new_year_budget' %}">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="new_year" class="block text-gray-700 text-sm font-bold mb-2">Year</label>
+                        <input type="number" id="new_year" name="year" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="new_total_budget" class="block text-gray-700 text-sm font-bold mb-2">Total Budget</label>
+                        <input type="number" id="new_total_budget" name="total_budget" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <button type="submit" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create New Year Budget</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script>
         function openModal() {
             document.getElementById('budgetModal').classList.remove('hidden');
@@ -188,6 +245,37 @@
             }
             if (event.target == projectModal) {
                 closeProjectModal();
+            }
+        }
+
+        function confirmDelete(projectId) {
+            if (confirm('Are you sure you want to delete this project?')) {
+                window.location.href = `/delete-project/${projectId}/`;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            var messages = document.querySelectorAll('.message');
+            messages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.transition = 'opacity 1s';
+                    message.style.opacity = '0';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 1000);
+                }, 3500);
+            });
+        });
+
+        function openNewYearBudgetModal() {
+            document.getElementById('newYearBudgetModal').classList.remove('hidden');
+        }
+    
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            var modal = document.getElementById('newYearBudgetModal');
+            if (event.target == modal) {
+                modal.classList.add('hidden');
             }
         }
     </script>

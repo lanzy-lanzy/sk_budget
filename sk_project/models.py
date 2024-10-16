@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.translation import gettext_lazy as _
-
+from django.db.models import Sum
 class User(AbstractUser):
     """
     User model to represent SK chairmen.
@@ -47,6 +47,24 @@ class MainBudget(models.Model):
 
     class Meta:
         verbose_name_plural = "Main Budgets"
+    def calculate_usage_percentage(self):
+        total_allocated = self.projects.aggregate(Sum('budget'))['budget__sum'] or 0
+        if self.total_budget > 0:
+            return (total_allocated / self.total_budget) * 100
+        return 0
+    @property
+    def allocated_budget(self):
+        return self.projects.aggregate(Sum('budget'))['budget__sum'] or 0
+
+    @property
+    def remaining_budget(self):
+        return self.total_budget - self.allocated_budget
+
+    @property
+    def usage_percentage(self):
+        if self.total_budget > 0:
+            return (self.allocated_budget / self.total_budget) * 100
+        return 0
 
 
 class Project(models.Model):
@@ -56,7 +74,7 @@ class Project(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     budget = models.DecimalField(max_digits=10, decimal_places=2)
-    main_budget = models.ForeignKey(MainBudget, related_name='projects', on_delete=models.CASCADE)
+    main_budget = models.ForeignKey(MainBudget, related_name='projects', on_delete=models.SET_NULL, null=True)
     chairman = models.ForeignKey(User, related_name='projects', on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()

@@ -10,23 +10,31 @@ from .forms import ExpenseForm, AccomplishmentReportForm
 
 @login_required
 def dashboard(request):
-    main_budget = MainBudget.objects.filter(chairman=request.user).latest('year') if MainBudget.objects.filter(chairman=request.user).exists() else None
-
+    main_budget = MainBudget.objects.filter(chairman=request.user).order_by('-year').first()
+    if main_budget:
+        remaining_budget = main_budget.remaining_budget
+        usage_percentage = main_budget.usage_percentage
+    else:
+        remaining_budget = 0
+        usage_percentage = 0
     projects = Project.objects.filter(chairman=request.user).annotate(
         total_expenses=models.Sum('expenses__amount')
     )
 
     total_expenses = sum(project.total_expenses or 0 for project in projects)
+
     active_projects_count = projects.count()  # Consider all projects as active
 
     context = {
         'main_budget': main_budget,
+        'remaining_budget': remaining_budget,
+        'usage_percentage': usage_percentage,
         'projects': projects,
         'total_expenses': total_expenses,
         'active_projects_count': active_projects_count,
+      
     }
     return render(request, 'dashboard.html', context)
-
 
 
 @login_required
@@ -52,32 +60,62 @@ def create_project(request):
             with transaction.atomic():
                 project = form.save(commit=False)
                 project.chairman = request.user
-                main_budget = MainBudget.objects.select_for_update().latest('year')
+                main_budget = MainBudget.objects.select_for_update().filter(chairman=request.user).latest('year')
                 
-                if main_budget.total_budget >= project.budget:
-                    main_budget.total_budget -= project.budget
-                    main_budget.save()
-                    
+                if main_budget.remaining_budget >= project.budget:
                     project.main_budget = main_budget
                     project.save()
-                    
-                    messages.success(request, 'Project created successfully and budget deducted from main budget!')
+                    messages.success(request, 'Project created successfully!')
                 else:
                     messages.error(request, 'Insufficient funds in the main budget for this project.')
         else:
             messages.error(request, 'Error creating project. Please check your input.')
     return redirect('dashboard')
+from django.db import transaction
+from django.utils import timezone
+
+@login_required
+def create_new_year_budget(request):
+    if request.method == 'POST':
+        form = MainBudgetForm(request.POST)
+        if form.is_valid():
+            year = form.cleaned_data['year']
+            total_budget = form.cleaned_data['total_budget']
+
+            with transaction.atomic():
+                if MainBudget.objects.filter(chairman=request.user, year=year).exists():
+                    messages.error(request, f'A budget for {year} already exists.')
+                else:
+                    new_budget = MainBudget.objects.create(
+                        year=year,
+                        total_budget=total_budget,
+                        chairman=request.user,
+                        created_at=timezone.now(),
+                        updated_at=timezone.now()
+                    )
+                    messages.success(request, f'New budget for {new_budget.year} created successfully! Total budget: ₱{new_budget.total_budget:,.2f}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.capitalize()}: {error}')
+
+    return redirect('dashboard')
+
+
 
 @login_required
 def create_main_budget(request):
     if request.method == 'POST':
         form = MainBudgetForm(request.POST)
+        print("Form data:", request.POST)
         if form.is_valid():
+            print("Form is valid")
             main_budget = form.save(commit=False)
             main_budget.chairman = request.user
             main_budget.save()
             messages.success(request, 'Main budget created successfully!')
         else:
+            print("Form errors:", form.errors)
             messages.error(request, 'Error creating main budget. Please check your input.')
     return redirect('dashboard')
 
@@ -324,3 +362,24 @@ def generate_pdf_report(response, user, projects):
 #     response['Content-Disposition'] = 'attachment; filename="sk_budget_report.pdf"'
 #     generate_pdf_report(response, request.user, Project.objects.filter(chairman=request.user))
 #     return response
+
+
+@login_required
+def edit_project(request, project_id):
+    project = get_object_or_404(Project, id=project_id, chairman=request.user)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Project updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = ProjectForm(instance=project)
+    return render(request, 'edit_project.html', {'form': form, 'project': project})
+
+@login_required
+def delete_project(request, project_id):
+    project = get_object_or_404(Project, id=project_id, chairman=request.user)
+    project.delete()
+    messages.success(request, 'Project deleted successfully!')
+    return redirect('dashboard')
