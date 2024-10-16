@@ -1,37 +1,44 @@
-from django.shortcuts import render
-from django.db.models import Sum
-from django.utils import timezone
-from .models import MainBudget, Project, Expense
-
-def dashboard(request):
-    try:
-        main_budget = MainBudget.objects.latest('year')
-    except MainBudget.DoesNotExist:
-        main_budget = None
-
-    active_projects_count = Project.objects.filter(end_date__gte=timezone.now().date()).count()
-    total_expenses = Expense.objects.aggregate(total=Sum('amount'))['total'] or 0
-
-    recent_activities = [
-        {'title': 'New Project Added', 'description': 'Project XYZ was added to the system.'},
-        {'title': 'Expense Recorded', 'description': 'New expense of ₱5000 recorded for Project ABC.'},
-        {'title': 'Budget Update', 'description': 'Main budget for 2023 has been updated.'},
-    ]
-
-    context = {
-        'main_budget': main_budget,
-        'active_projects_count': active_projects_count,
-        'total_expenses': total_expenses,
-        'recent_activities': recent_activities,
-    }
-
-    return render(request, 'dashboard.html', context)
-
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import MainBudget
-from .forms import MainBudgetForm
+from .models import MainBudget, Project
+from .forms import MainBudgetForm, ProjectForm
+
+@login_required
+def dashboard(request):
+    main_budget = MainBudget.objects.latest('year')
+    projects = Project.objects.filter(chairman=request.user)
+    context = {
+        'main_budget': main_budget,
+        'projects': projects,
+    }
+    return render(request, 'dashboard.html', context)
+
+from django.db import transaction
+
+@login_required
+def create_project(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                project = form.save(commit=False)
+                project.chairman = request.user
+                main_budget = MainBudget.objects.select_for_update().latest('year')
+                
+                if main_budget.total_budget >= project.budget:
+                    main_budget.total_budget -= project.budget
+                    main_budget.save()
+                    
+                    project.main_budget = main_budget
+                    project.save()
+                    
+                    messages.success(request, 'Project created successfully and budget deducted from main budget!')
+                else:
+                    messages.error(request, 'Insufficient funds in the main budget for this project.')
+        else:
+            messages.error(request, 'Error creating project. Please check your input.')
+    return redirect('dashboard')
 
 @login_required
 def create_main_budget(request):
