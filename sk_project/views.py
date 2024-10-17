@@ -1,130 +1,29 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import logout
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .models import MainBudget, Project
-from .forms import MainBudgetForm, ProjectForm
-from django.db import models
-from django.shortcuts import get_object_or_404
-from .forms import ExpenseForm, AccomplishmentReportForm
-
-@login_required
-def dashboard(request):
-    main_budget = MainBudget.objects.filter(chairman=request.user).order_by('-year').first()
-    if main_budget:
-        remaining_budget = main_budget.remaining_budget
-        usage_percentage = main_budget.usage_percentage
-    else:
-        remaining_budget = 0
-        usage_percentage = 0
-    projects = Project.objects.filter(chairman=request.user).annotate(
-        total_expenses=models.Sum('expenses__amount')
-    )
-
-    total_expenses = sum(project.total_expenses or 0 for project in projects)
-
-    active_projects_count = projects.count()  # Consider all projects as active
-
-    context = {
-        'main_budget': main_budget,
-        'remaining_budget': remaining_budget,
-        'usage_percentage': usage_percentage,
-        'projects': projects,
-        'total_expenses': total_expenses,
-        'active_projects_count': active_projects_count,
-      
-    }
-    return render(request, 'dashboard.html', context)
-
-
-@login_required
-
-
-def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id, chairman=request.user)
-    expenses = project.expenses.all()
-    context = {
-        'project': project,
-        'expenses': expenses,
-    }
-    return render(request, 'project_detail.html', context)
-
-
-from django.db import transaction
-
-@login_required
-def create_project(request):
-    if request.method == 'POST':
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            with transaction.atomic():
-                project = form.save(commit=False)
-                project.chairman = request.user
-                main_budget = MainBudget.objects.select_for_update().filter(chairman=request.user).latest('year')
-                
-                if main_budget.remaining_budget >= project.budget:
-                    project.main_budget = main_budget
-                    project.save()
-                    messages.success(request, 'Project created successfully!')
-                else:
-                    messages.error(request, 'Insufficient funds in the main budget for this project.')
-        else:
-            messages.error(request, 'Error creating project. Please check your input.')
-    return redirect('dashboard')
-from django.db import transaction
-from django.utils import timezone
-
-@login_required
-def create_new_year_budget(request):
-    if request.method == 'POST':
-        form = MainBudgetForm(request.POST)
-        if form.is_valid():
-            year = form.cleaned_data['year']
-            total_budget = form.cleaned_data['total_budget']
-
-            with transaction.atomic():
-                if MainBudget.objects.filter(chairman=request.user, year=year).exists():
-                    messages.error(request, f'A budget for {year} already exists.')
-                else:
-                    new_budget = MainBudget.objects.create(
-                        year=year,
-                        total_budget=total_budget,
-                        chairman=request.user,
-                        created_at=timezone.now(),
-                        updated_at=timezone.now()
-                    )
-                    messages.success(request, f'New budget for {new_budget.year} created successfully! Total budget: ₱{new_budget.total_budget:,.2f}')
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field.capitalize()}: {error}')
-
-    return redirect('dashboard')
-
-
-
-@login_required
-def create_main_budget(request):
-    if request.method == 'POST':
-        form = MainBudgetForm(request.POST)
-        print("Form data:", request.POST)
-        if form.is_valid():
-            print("Form is valid")
-            main_budget = form.save(commit=False)
-            main_budget.chairman = request.user
-            main_budget.save()
-            messages.success(request, 'Main budget created successfully!')
-        else:
-            print("Form errors:", form.errors)
-            messages.error(request, 'Error creating main budget. Please check your input.')
-    return redirect('dashboard')
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import models, transaction
+from django.utils import timezone
+from django.http import HttpResponse
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from io import BytesIO
+from .models import MainBudget, Project, User
+from .forms import (
+    MainBudgetForm,
+    ProjectForm,
+    ExpenseForm,
+    AccomplishmentReportForm,
+    CustomUserCreationForm,
+    UserProfileForm)
 
-from .forms import CustomUserCreationForm
+from django.db.models import Q
+from reportlab.platypus import HRFlowable
+# User Authentication Views
 
 def register(request):
     if request.method == 'POST':
@@ -151,9 +50,128 @@ def user_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
+
+
 def user_logout(request):
     logout(request)
     return redirect('login')
+
+# Dashboard and Budget Management Views
+
+@login_required
+def dashboard(request):
+    main_budget = MainBudget.objects.filter(chairman=request.user).order_by('-year').first()
+    if main_budget:
+        remaining_budget = main_budget.remaining_budget
+        usage_percentage = main_budget.usage_percentage
+    else:
+        remaining_budget = 0
+        usage_percentage = 0
+    projects = Project.objects.filter(chairman=request.user).annotate(
+        total_expenses=models.Sum('expenses__amount')
+    )
+
+    total_expenses = sum(project.total_expenses or 0 for project in projects)
+    active_projects_count = projects.count()
+
+    context = {
+        'main_budget': main_budget,
+        'remaining_budget': remaining_budget,
+        'usage_percentage': usage_percentage,
+        'projects': projects,
+        'total_expenses': total_expenses,
+        'active_projects_count': active_projects_count,
+    }
+    return render(request, 'dashboard.html', context)
+
+
+@login_required
+def create_main_budget(request):
+    if request.method == 'POST':
+        form = MainBudgetForm(request.POST)
+        if form.is_valid():
+            main_budget = form.save(commit=False)
+            main_budget.chairman = request.user
+            main_budget.save()
+            messages.success(request, 'Main budget created successfully!')
+        else:
+            messages.error(request, 'Error creating main budget. Please check your input.')
+    return redirect('dashboard')
+
+
+@login_required
+def create_new_year_budget(request):
+    if request.method == 'POST':
+        form = MainBudgetForm(request.POST)
+        if form.is_valid():
+            year = form.cleaned_data['year']
+            total_budget = form.cleaned_data['total_budget']
+            with transaction.atomic():
+                if MainBudget.objects.filter(chairman=request.user, year=year).exists():
+                    messages.error(request, f'A budget for {year} already exists.')
+                else:
+                    MainBudget.objects.create(
+                        year=year,
+                        total_budget=total_budget,
+                        chairman=request.user,
+                        created_at=timezone.now(),
+                        updated_at=timezone.now()
+                    )
+                    messages.success(request, f'New budget for {year} created successfully! Total budget: ₱{total_budget:,.2f}')
+        else:
+            messages.error(request, 'Error creating new year budget. Please check your input.')
+    return redirect('dashboard')
+
+# Project Management Views
+
+@login_required
+def create_project(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                project = form.save(commit=False)
+                project.chairman = request.user
+                main_budget = MainBudget.objects.select_for_update().filter(chairman=request.user).latest('year')
+                if main_budget.remaining_budget >= project.budget:
+                    project.main_budget = main_budget
+                    project.save()
+                    messages.success(request, 'Project created successfully!')
+                else:
+                    messages.error(request, 'Insufficient funds in the main budget for this project.')
+        else:
+            messages.error(request, 'Error creating project. Please check your input.')
+    return redirect('dashboard')
+
+
+@login_required
+def project_detail(request, project_id):
+    project = get_object_or_404(Project, id=project_id, chairman=request.user)
+    expenses = project.expenses.all()
+    context = {
+        'project': project,
+        'expenses': expenses,
+    }
+    return render(request, 'project_detail.html', context)
+
+def all_projects(request):
+    search_query = request.GET.get('search', '')
+    projects = Project.objects.filter(chairman=request.user)
+
+    if search_query:
+        projects = projects.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    context = {
+        'projects': projects,
+        'search_query': search_query,
+    }
+    return render(request, 'all_projects.html', context)
+
+# Expense Management Views
+
 @login_required
 def add_expense(request, project_id):
     project = get_object_or_404(Project, id=project_id, chairman=request.user)
@@ -177,26 +195,27 @@ def add_expense(request, project_id):
 
 
 @login_required
-def all_projects(request):
-    projects = Project.objects.filter(chairman=request.user).annotate(
-        total_expenses=models.Sum('expenses__amount')
-    ).order_by('-created_at')
-    
-    context = {
-        'projects': projects,
-    }
-    return render(request, 'all_projects.html', context)
-
-@login_required
 def all_expenses(request):
     projects = Project.objects.filter(chairman=request.user).prefetch_related('expenses')
     total_expenses = sum(expense.amount for project in projects for expense in project.expenses.all())
     
+    search_query = request.GET.get('search', '')
+    if search_query:
+        projects = projects.filter(
+            Q(name__icontains=search_query) |
+            Q(expenses__item_name__icontains=search_query) |
+            Q(expenses__description__icontains=search_query)
+        ).distinct()
+    
     context = {
         'projects': projects,
         'total_expenses': total_expenses,
+        'search_query': search_query,
     }
     return render(request, 'all_expenses.html', context)
+
+
+# Accomplishment Report Management Views
 
 @login_required
 def project_accomplishment_report(request, project_id):
@@ -208,8 +227,6 @@ def project_accomplishment_report(request, project_id):
         'accomplishment_reports': accomplishment_reports,
     }
     return render(request, 'project_accomplishment_report.html', context)
-
-@login_required
 
 
 @login_required
@@ -231,13 +248,8 @@ def add_accomplishment_report(request, project_id):
     }
     return render(request, 'add_accomplishment_report.html', context)
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import UserProfileForm
+# Profile Management View
+
 @login_required
 def edit_profile(request):
     if request.method == 'POST':
@@ -251,17 +263,7 @@ def edit_profile(request):
     
     return render(request, 'edit_profile.html', {'form': form})
 
-
-
-from django.http import FileResponse
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-
-from io import BytesIO
-from django.http import HttpResponse
+# PDF Export Functionality
 
 @login_required
 def export_pdf_report(request):
@@ -273,34 +275,42 @@ def export_pdf_report(request):
     response['Content-Disposition'] = 'attachment; filename="sk_budget_report.pdf"'
     return response
 
-
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-
 def generate_pdf_report(response, user, projects):
-    doc = SimpleDocTemplate(response, pagesize=letter)
+    doc = SimpleDocTemplate(response, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch, leftMargin=0.5*inch, rightMargin=0.5*inch)
     elements = []
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor("#2C3E50"), spaceAfter=12)
-    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=18, textColor=colors.HexColor("#34495E"), spaceBefore=12, spaceAfter=6)
-    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor("#2C3E50"))
-    subheading_style = ParagraphStyle('Subheading', parent=styles['Heading3'], fontSize=14, textColor=colors.HexColor("#16A085"), spaceBefore=8, spaceAfter=4)
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=28, textColor=colors.HexColor("#2C3E50"), spaceAfter=16, alignment=1)
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'], fontSize=20, textColor=colors.HexColor("#34495E"), spaceBefore=16, spaceAfter=8)
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor("#2C3E50"), leading=14)
+    subheading_style = ParagraphStyle('Subheading', parent=styles['Heading3'], fontSize=16, textColor=colors.HexColor("#16A085"), spaceBefore=12, spaceAfter=6)
 
+    # Add a decorative header
     elements.append(Paragraph("SK Budget Report", title_style))
-    elements.append(Spacer(1, 0.3*inch))
+    elements.append(HRFlowable(width="100%", thickness=2, color=colors.HexColor("#3498DB"), spaceAfter=0.2*inch))
 
-    elements.append(Paragraph(f"Chairman: {user.get_full_name()}", heading_style))
-    elements.append(Paragraph(f"Email: {user.email}", normal_style))
-    elements.append(Paragraph(f"Contact: {user.contact_number}", normal_style))
+    # Chairman information
+    elements.append(Paragraph("Chairman Information", heading_style))
+    chairman_info = [
+        [Paragraph(f"<b>Name:</b> {user.get_full_name()}", normal_style)],
+        [Paragraph(f"<b>Email:</b> {user.email}", normal_style)],
+        [Paragraph(f"<b>Contact:</b> {user.contact_number}", normal_style)]
+    ]
+    chairman_table = Table(chairman_info, colWidths=[6*inch])
+    chairman_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#ECF0F1")),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#BDC3C7")),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('LEFTPADDING', (0,0), (-1,-1), 10),
+    ]))
+    elements.append(chairman_table)
     elements.append(Spacer(1, 0.3*inch))
 
     for project in projects:
         elements.append(Paragraph(f"Project: {project.name}", subheading_style))
         
+        # Project summary
         project_data = [
             ["Budget", "Expenses", "Remaining"],
             [f"{project.budget:,.2f}", f"{project.total_expenses():,.2f}", f"{project.remaining_budget:,.2f}"]
@@ -318,7 +328,7 @@ def generate_pdf_report(response, user, projects):
             ('TEXTCOLOR', (0,1), (-1,-1), colors.HexColor("#2C3E50")),
             ('ALIGN', (0,1), (-1,-1), 'CENTER'),
             ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
-            ('FONTSIZE', (0,1), (-1,-1), 10),
+            ('FONTSIZE', (0,1), (-1,-1), 11),
             ('TOPPADDING', (0,1), (-1,-1), 6),
             ('BOTTOMPADDING', (0,1), (-1,-1), 6),
             ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#BDC3C7"))
@@ -326,14 +336,19 @@ def generate_pdf_report(response, user, projects):
         elements.append(project_table)
         elements.append(Spacer(1, 0.2*inch))
         
-        expense_data = [["Expense Details", "Amount"]]
+        # Expense details
+        elements.append(Paragraph("Expense Details", subheading_style))
+        expense_data = [["Item Name", "Description", "Quantity", "Price per Unit", "Amount"]]
         for expense in project.expenses.all():
-            expense_details = f"{expense.quantity} x {expense.price_per_unit} - {expense.description}"
-            expense_data.append([expense_details, f"{expense.amount:,.2f}"])
+            expense_data.append([
+                expense.item_name,
+                expense.description,
+                str(expense.quantity),
+                f"{expense.price_per_unit:,.2f}",
+                f"{expense.amount:,.2f}"
+            ])
 
-
-        
-        expense_table = Table(expense_data, colWidths=[4*inch, 2*inch])
+        expense_table = Table(expense_data, colWidths=[1.5*inch, 2*inch, 1*inch, 1.25*inch, 1.25*inch])
         expense_table.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#16A085")),
             ('TEXTCOLOR', (0,0), (-1,0), colors.white),
@@ -343,8 +358,8 @@ def generate_pdf_report(response, user, projects):
             ('BOTTOMPADDING', (0,0), (-1,0), 8),
             ('BACKGROUND', (0,1), (-1,-1), colors.HexColor("#E8F6F3")),
             ('TEXTCOLOR', (0,1), (-1,-1), colors.HexColor("#2C3E50")),
-            ('ALIGN', (0,1), (0,-1), 'LEFT'),
-            ('ALIGN', (1,1), (1,-1), 'RIGHT'),
+            ('ALIGN', (0,1), (1,-1), 'LEFT'),
+            ('ALIGN', (2,1), (-1,-1), 'RIGHT'),
             ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
             ('FONTSIZE', (0,1), (-1,-1), 10),
             ('TOPPADDING', (0,1), (-1,-1), 4),
@@ -353,10 +368,17 @@ def generate_pdf_report(response, user, projects):
         ]))
         elements.append(expense_table)
         elements.append(Spacer(1, 0.3*inch))
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#BDC3C7"), spaceAfter=0.2*inch))
 
-    doc.build(elements)
+    # Add page numbers
+    def add_page_number(canvas, doc):
+        page_num = canvas.getPageNumber()
+        text = f"Page {page_num}"
+        canvas.setFont("Helvetica", 9)
+        canvas.setFillColor(colors.HexColor("#7F8C8D"))
+        canvas.drawRightString(7.5*inch, 0.25*inch, text)
 
-
+    doc.build(elements, onFirstPage=add_page_number, onLaterPages=add_page_number)
 
 @login_required
 def edit_project(request, project_id):

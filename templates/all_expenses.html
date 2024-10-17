@@ -10,22 +10,31 @@
             <p class="text-4xl font-bold text-quaternary">₱{{ total_expenses|floatformat:2|intcomma }}</p>
         </div>
 
+        <form method="get" class="mb-8">
+            <div class="flex items-center">
+                <input type="text" name="search" placeholder="Search projects or expenses..." value="{{ search_query }}" class="flex-grow p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-tertiary">
+                <button type="submit" class="bg-tertiary text-white px-4 py-2 rounded-r-lg hover:bg-tertiary-dark focus:outline-none focus:ring-2 focus:ring-tertiary">
+                    Search
+                </button>
+            </div>
+        </form>
+
         {% for project in projects %}
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8 transition-all duration-300 hover:shadow-xl">
                 <div class="bg-tertiary text-white p-4">
                     <h2 class="text-2xl font-semibold">{{ project.name }}</h2>
                 </div>
                 <div class="p-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-primary rounded-lg p-4">
+                        <div class="bg-primary rounded-lg p-4 transition-all duration-300 hover:shadow-md">
                             <p class="font-semibold text-tertiary">Budget</p>
                             <p class="text-2xl font-bold">₱{{ project.budget|floatformat:2|intcomma }}</p>
                         </div>
-                        <div class="bg-secondary rounded-lg p-4">
+                        <div class="bg-secondary rounded-lg p-4 transition-all duration-300 hover:shadow-md">
                             <p class="font-semibold text-tertiary">Total Expenses</p>
                             <p class="text-2xl font-bold">₱{{ project.total_expenses|default:0|floatformat:2|intcomma }}</p>
                         </div>
-                        <div class="bg-quaternary rounded-lg p-4">
+                        <div class="bg-quaternary rounded-lg p-4 transition-all duration-300 hover:shadow-md">
                             <p class="font-semibold text-white">Remaining Budget</p>
                             <p class="text-2xl font-bold text-white">₱{{ project.remaining_budget|floatformat:2|intcomma }}</p>
                         </div>
@@ -45,7 +54,7 @@
                             </thead>
                             <tbody>
                                 {% for expense in project.expenses.all %}
-                                    <tr class="{% cycle 'bg-gray-50' 'bg-white' %}">
+                                    <tr class="{% cycle 'bg-gray-50' 'bg-white' %} hover:bg-gray-100 transition-colors duration-200">
                                         <td class="py-3 px-4">{{ expense.date_incurred }}</td>
                                         <td class="py-3 px-4">{{ expense.item_name }}</td>
                                         <td class="py-3 px-4">{{ expense.quantity }}</td>
