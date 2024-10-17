@@ -33,6 +33,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.get_full_name()
+    
+    def total_budget(self):
+        return self.projects.aggregate(total=Sum('budget'))['total'] or 0
+
+    def total_expenses(self):
+        return self.projects.annotate(
+            project_expenses=Sum('expenses__amount')
+        ).aggregate(total=Sum('project_expenses'))['total'] or 0
 class MainBudget(models.Model):
     """
     Main budget model to represent the total budget for a specific year.

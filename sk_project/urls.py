@@ -3,7 +3,8 @@ from sk_project import views
 
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
+    path('', views.landing_page, name='landing_page'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('login/', views.user_login, name='login'),
     path('register/', views.register, name='register'),
     path('logout/', views.user_logout, name='logout'),
@@ -23,6 +24,8 @@ urlpatterns = [
     path('edit-project/<int:project_id>/', views.edit_project, name='edit_project'),
     path('delete-project/<int:project_id>/', views.delete_project, name='delete_project'),
     path('create-new-year-budget/', views.create_new_year_budget, name='create_new_year_budget'),
+
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
 
 ]
 

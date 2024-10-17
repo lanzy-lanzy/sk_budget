@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK Budget - Empowering Youth Leadership</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#F3CA52',
+                        secondary: '#F6E9B2',
+                        tertiary: '#0A6847',
+                        quaternary: '#7ABA78',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-secondary to-primary min-h-screen">
+    <header class="bg-tertiary text-white p-4">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold"><i class="fas fa-coins mr-2"></i>SK Budget</h1>
+            <div>
+                <a href="{% url 'login' %}" class="bg-quaternary hover:bg-primary text-tertiary font-bold py-2 px-4 rounded transition duration-300"><i class="fas fa-sign-in-alt mr-2"></i>Login</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto mt-16 px-4">
+        <section class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-tertiary mb-4"><i class="fas fa-users mr-2"></i>Empowering Youth Leadership</h2>
+            <p class="text-xl text-gray-700 mb-8">Manage your SK projects and budgets efficiently</p>
+            <a href="{% url 'register' %}" class="bg-tertiary hover:bg-quaternary text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300 inline-block"><i class="fas fa-rocket mr-2"></i>Get Started</a>
+        </section>
+
+        <section class="grid md:grid-cols-3 gap-8 mb-16">
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center feature-card transform hover:scale-105 transition-transform duration-300">
+                <div class="bg-tertiary inline-block p-4 rounded-full mb-6">
+                    <i class="fas fa-chart-line text-5xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-semibold mb-3 text-tertiary">Budget Tracking</h3>
+                <p class="text-gray-600 leading-relaxed">Easily monitor and manage your SK funds with precision</p>
+            </div>
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center feature-card transform hover:scale-105 transition-transform duration-300">
+                <div class="bg-tertiary inline-block p-4 rounded-full mb-6">
+                    <i class="fas fa-tasks text-5xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-semibold mb-3 text-tertiary">Project Management</h3>
+                <p class="text-gray-600 leading-relaxed">Organize and track your community projects efficiently</p>
+            </div>
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center feature-card transform hover:scale-105 transition-transform duration-300">
+                <div class="bg-tertiary inline-block p-4 rounded-full mb-6">
+                    <i class="fas fa-file-alt text-5xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-semibold mb-3 text-tertiary">Report Generation</h3>
+                <p class="text-gray-600 leading-relaxed">Create comprehensive reports with ease and clarity</p>
+            </div>
+        </section>
+
+        <section class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-tertiary mb-4"><i class="fas fa-handshake mr-2"></i>Join the SK Budget Community</h2>
+            <p class="text-xl text-gray-700 mb-8">Start making a difference in your community today</p>
+            <a href="{% url 'register' %}" class="bg-quaternary hover:bg-primary text-tertiary font-bold py-3 px-6 rounded-lg text-xl transition duration-300 inline-block"><i class="fas fa-user-plus mr-2"></i>Sign Up Now</a>
+        </section>
+    </main>
+
+    <footer class="bg-tertiary text-white py-4 mt-16">
+        <div class="container mx-auto text-center">
+            <p><i class="far fa-copyright mr-2"></i>2024 SK Budget. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        gsap.from(".feature-card", {
+            duration: 1,
+            y: 50,
+            opacity: 0,
+            stagger: 0.2,
+            ease: "power3.out"
+        });
+
+        gsap.from("h1, h2, p, a", {
+            duration: 1,
+            y: -30,
+            opacity: 0,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+
+        gsap.from("i", {
+            duration: 0.5,
+            scale: 0,
+            opacity: 0,
+            stagger: 0.05,
+            ease: "back.out(1.7)"
+        });
+    </script>
+</body>
+</html>

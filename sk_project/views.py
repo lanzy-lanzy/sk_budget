@@ -26,7 +26,8 @@ from reportlab.platypus import HRFlowable
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, render
 # User Authentication Views
-
+def landing_page(request):
+    return render(request, 'landing_page.html')
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -48,7 +49,10 @@ def user_login(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('dashboard')
+                if user.is_superuser:
+                    return redirect('admin_dashboard')
+                else:
+                    return redirect('dashboard')
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
@@ -56,7 +60,7 @@ def user_login(request):
 
 def user_logout(request):
     logout(request)
-    return redirect('login')
+    return redirect('landing_page')
 
 # Dashboard and Budget Management Views
 
@@ -419,3 +423,35 @@ def delete_project(request, project_id):
     project.delete()
     messages.success(request, 'Project deleted successfully!')
     return redirect('dashboard')
+
+from django.contrib.auth.decorators import user_passes_test
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard(request):
+    search_query = request.GET.get('search', '')
+    chairmen = User.objects.filter(is_chairman=True).order_by('last_name', 'first_name')
+    
+    if search_query:
+        chairmen = chairmen.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(address__icontains=search_query) |
+            Q(projects__name__icontains=search_query)
+        ).distinct()
+    
+    all_projects = Project.objects.all().order_by('chairman__last_name', 'chairman__first_name', 'name')
+    all_main_budgets = MainBudget.objects.all().order_by('-year', 'chairman__last_name', 'chairman__first_name')
+    total_budget = MainBudget.objects.aggregate(total=Sum('total_budget'))['total'] or 0
+    total_expenses = Project.objects.aggregate(total=Sum('expenses__amount'))['total'] or 0
+
+    context = {
+        'chairmen': chairmen,
+        'all_projects': all_projects,
+        'all_main_budgets': all_main_budgets,
+        'total_budget': total_budget,
+        'total_expenses': total_expenses,
+        'search_query': search_query,
+    }
+    return render(request, 'admin_dashboard.html', context)
+

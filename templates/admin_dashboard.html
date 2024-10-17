@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-tertiary"><i class="fas fa-tachometer-alt mr-2"></i>Admin Dashboard</h1>
+
+<!-- Add search form -->
+<form method="get" class="mb-6">
+    <div class="flex">
+        <input type="text" name="search" value="{{ search_query }}" placeholder="Search chairmen or projects..." class="flex-grow p-2 border rounded-l-lg">
+        <button type="submit" class="bg-tertiary text-white px-4 py-2 rounded-r-lg hover:bg-quaternary transition duration-300">
+            <i class="fas fa-search mr-2"></i>Search
+        </button>
+    </div>
+</form>
+
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4 text-tertiary"><i class="fas fa-chart-pie mr-2"></i>Overall Budget Summary</h2>
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-tertiary">
+        <p class="flex items-center mb-2"><i class="fas fa-money-bill-wave text-quaternary mr-2"></i>Total Budget: <span class="ml-2 font-semibold">₱{{ total_budget|intcomma }}</span></p>
+        <p class="flex items-center mb-2"><i class="fas fa-receipt text-quaternary mr-2"></i>Total Expenses: <span class="ml-2 font-semibold">₱{{ total_expenses|intcomma }}</span></p>
+        <p class="flex items-center"><i class="fas fa-piggy-bank text-quaternary mr-2"></i>Remaining Budget: <span class="ml-2 font-semibold">₱{{ total_budget|sub:total_expenses|intcomma }}</span></p>
+    </div>
+</div>
+
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4 text-tertiary"><i class="fas fa-list-alt mr-2"></i>All Main Budgets</h2>
+    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+        <table class="min-w-full">
+            <thead class="bg-tertiary text-white">
+                <tr>
+                    <th class="py-3 px-4 border-b"><i class="far fa-calendar-alt mr-2"></i>Year</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-user-tie mr-2"></i>Chairman</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-map-marker-alt mr-2"></i>Address</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-money-bill-alt mr-2"></i>Total Budget</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-chart-bar mr-2"></i>Allocated Budget</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-coins mr-2"></i>Remaining Budget</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for budget in all_main_budgets %}
+                <tr class="hover:bg-secondary">
+                    <td class="py-3 px-4 border-b">{{ budget.year }}</td>
+                    <td class="py-3 px-4 border-b">{{ budget.chairman.get_full_name|title }}</td>
+                    <td class="py-3 px-4 border-b">{{ chairman.address|default:"N/A" }}</td>
+                    <td class="py-3 px-4 border-b">₱{{ budget.total_budget|intcomma }}</td>
+                    <td class="py-3 px-4 border-b">₱{{ budget.allocated_budget|intcomma }}</td>
+                    <td class="py-3 px-4 border-b">₱{{ budget.remaining_budget|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold mb-4 text-tertiary"><i class="fas fa-project-diagram mr-2"></i>All Projects</h2>
+    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+        <table class="min-w-full">
+            <thead class="bg-tertiary text-white">
+                <tr>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-folder mr-2"></i>Name</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-user-tie mr-2"></i>Chairman</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-money-bill-alt mr-2"></i>Budget</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-calendar-plus mr-2"></i>Start Date</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-calendar-check mr-2"></i>End Date</th>
+                    <th class="py-3 px-4 border-b"><i class="fas fa-info-circle mr-2"></i>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in all_projects %}
+                <tr class="hover:bg-secondary">
+                    <td class="py-3 px-4 border-b">{{ project.name|title }}</td>
+                    <td class="py-3 px-4 border-b">{{ project.chairman.get_full_name|title }}</td>
+                    <td class="py-3 px-4 border-b">₱{{ project.budget|intcomma }}</td>
+                    <td class="py-3 px-4 border-b">{{ project.start_date }}</td>
+                    <td class="py-3 px-4 border-b">{{ project.end_date }}</td>
+                    <td class="py-3 px-4 border-b">
+                        {% if project.end_date < now %}
+                            <span class="text-quaternary"><i class="fas fa-check-circle mr-1"></i>Completed</span>
+                        {% elif project.start_date <= now and project.end_date >= now %}
+                            <span class="text-tertiary"><i class="fas fa-spinner mr-1"></i>Ongoing</span>
+                        {% else %}
+                            <span class="text-primary"><i class="fas fa-clock mr-1"></i>Upcoming</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for chairman in chairmen %}
+    <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-tertiary">
+        <h2 class="text-xl font-semibold mb-4 text-tertiary"><i class="fas fa-user-circle mr-2"></i>{{ chairman.get_full_name|title }}</h2>
+        <p class="flex items-center mb-2"><i class="fas fa-envelope text-quaternary mr-2"></i>{{ chairman.email }}</p>
+        <p class="flex items-center mb-2"><i class="fas fa-folder-open text-primary mr-2"></i>Total Projects: {{ chairman.projects.count }}</p>
+        <p class="flex items-center mb-2"><i class="fas fa-money-bill-wave text-quaternary mr-2"></i>Total Budget: ₱{{ chairman.total_budget|floatformat:2|intcomma }}</p>
+        <p class="flex items-center mb-2"><i class="fas fa-receipt text-quaternary mr-2"></i>Total Expenses: ₱{{ chairman.total_expenses|floatformat:2|intcomma }}</p>
+        <div class="mt-4">
+            <h3 class="font-semibold text-tertiary"><i class="fas fa-list-ul mr-2"></i>Projects:</h3>
+            <ul class="list-disc pl-5 mt-2">
+                {% for project in chairman.projects.all %}
+                <li class="mb-1">{{ project.name|title }} - ₱{{ project.budget|floatformat:2|intcomma }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% empty %}
+    <p class="col-span-full text-center text-gray-500">No chairmen found matching your search criteria.</p>
+    {% endfor %}
+</div>
+{% endblock %}
