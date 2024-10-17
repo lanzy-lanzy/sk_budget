@@ -20,9 +20,11 @@ from .forms import (
     AccomplishmentReportForm,
     CustomUserCreationForm,
     UserProfileForm)
-
+from decimal import Decimal
 from django.db.models import Q
 from reportlab.platypus import HRFlowable
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404, render
 # User Authentication Views
 
 def register(request):
@@ -73,6 +75,10 @@ def dashboard(request):
 
     total_expenses = sum(project.total_expenses or 0 for project in projects)
     active_projects_count = projects.count()
+    ongoing_initiatives = projects.filter(end_date__gt=timezone.now()).count()
+    projects_in_progress = projects.filter(start_date__lte=timezone.now(), end_date__gte=timezone.now()).count()
+    cumulative_spending = total_expenses
+    budget_utilization = (total_expenses / main_budget.total_budget * 100) if main_budget else 0
 
     context = {
         'main_budget': main_budget,
@@ -81,8 +87,13 @@ def dashboard(request):
         'projects': projects,
         'total_expenses': total_expenses,
         'active_projects_count': active_projects_count,
+        'ongoing_initiatives': ongoing_initiatives,
+        'projects_in_progress': projects_in_progress,
+        'cumulative_spending': cumulative_spending,
+        'budget_utilization': budget_utilization,
     }
     return render(request, 'dashboard.html', context)
+
 
 
 @login_required
@@ -132,6 +143,7 @@ def create_project(request):
             with transaction.atomic():
                 project = form.save(commit=False)
                 project.chairman = request.user
+                project.allocated_budget = project.budget  # Set allocated_budget
                 main_budget = MainBudget.objects.select_for_update().filter(chairman=request.user).latest('year')
                 if main_budget.remaining_budget >= project.budget:
                     project.main_budget = main_budget
@@ -145,19 +157,25 @@ def create_project(request):
 
 
 @login_required
+
+
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id, chairman=request.user)
-    expenses = project.expenses.all()
+    expenses = project.expenses.all().order_by('-date_incurred')
+    total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or 0
     context = {
         'project': project,
         'expenses': expenses,
+        'total_expenses': total_expenses,
     }
     return render(request, 'project_detail.html', context)
 
+
 def all_projects(request):
     search_query = request.GET.get('search', '')
-    projects = Project.objects.filter(chairman=request.user)
-
+    projects = Project.objects.filter(chairman=request.user).annotate(
+    total_expenses=models.Sum('expenses__amount')
+)
     if search_query:
         projects = projects.filter(
             Q(name__icontains=search_query) |
@@ -181,10 +199,10 @@ def add_expense(request, project_id):
             expense = form.save(commit=False)
             expense.project = project
             expense.amount = expense.price_per_unit * expense.quantity
-            if expense.amount <= project.remaining_budget:
+            total_expenses = project.expenses.aggregate(total=models.Sum('amount'))['total'] or 0
+            remaining_budget = project.allocated_budget - total_expenses
+            if expense.amount <= remaining_budget:
                 expense.save()
-                project.budget -= expense.amount
-                project.save()
                 messages.success(request, 'Expense added successfully!')
             else:
                 messages.error(request, 'Expense amount exceeds remaining budget!')
@@ -193,11 +211,12 @@ def add_expense(request, project_id):
         form = ExpenseForm()
     return render(request, 'add_expense.html', {'form': form, 'project': project})
 
-
 @login_required
 def all_expenses(request):
-    projects = Project.objects.filter(chairman=request.user).prefetch_related('expenses')
-    total_expenses = sum(expense.amount for project in projects for expense in project.expenses.all())
+    total_expenses = Project.objects.filter(chairman=request.user).aggregate(total=models.Sum('expenses__amount'))['total'] or 0
+    projects = Project.objects.filter(chairman=request.user).annotate(
+    total_expenses=models.Sum('expenses__amount')
+    )
     
     search_query = request.GET.get('search', '')
     if search_query:
@@ -213,6 +232,7 @@ def all_expenses(request):
         'search_query': search_query,
     }
     return render(request, 'all_expenses.html', context)
+
 
 
 # Accomplishment Report Management Views

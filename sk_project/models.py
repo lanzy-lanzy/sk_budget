@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
+from decimal import Decimal
 class User(AbstractUser):
     """
     User model to represent SK chairmen.
@@ -73,6 +74,7 @@ class Project(models.Model):
     """
     name = models.CharField(max_length=255)
     description = models.TextField()
+    allocated_budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     main_budget = models.ForeignKey(MainBudget, related_name='projects', on_delete=models.SET_NULL, null=True)
     chairman = models.ForeignKey(User, related_name='projects', on_delete=models.CASCADE)
@@ -81,18 +83,20 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.name
-
-    def total_expenses(self):
-        return self.expenses.aggregate(models.Sum('amount'))['amount__sum'] or 0
-
-    @property
-    def remaining_budget(self):
-        return self.budget - self.total_expenses()
 
     class Meta:
         ordering = ['start_date']
+
+    def __str__(self):
+        return self.name
+
+ 
+    @property
+    def remaining_budget(self):
+        total_expenses = self.expenses.aggregate(total=models.Sum('amount'))['total'] or 0
+        return self.budget - total_expenses
+
+    
 
 class Expense(models.Model):
     """
