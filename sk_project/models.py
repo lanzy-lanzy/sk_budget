@@ -98,7 +98,8 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
- 
+    def total_expenses(self):
+        return self.expenses.aggregate(total=models.Sum('amount'))['total'] or 0
     @property
     def remaining_budget(self):
         total_expenses = self.expenses.aggregate(total=models.Sum('amount'))['total'] or 0
