@@ -29,12 +29,12 @@
                 <div class="p-4 flex flex-col items-center">
                     <a href="{% url 'edit_profile' %}" class="mb-3 relative">
                         {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
                         {% else %}
-                            <img src="{% static 'img/drr.png' %}" alt="Default Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
+                        <img src="{% static 'img/drr.png' %}" alt="Default Profile Picture" class="w-24 h-24 rounded-full border-4 border-quaternary hover:border-primary transition-colors duration-200">
                         {% endif %}
                         <i class="fas fa-pencil-alt absolute bottom-0 right-0 bg-quaternary text-white p-2 rounded-full"></i>
-                    </a>
+                    </a>                    
                     <div class="text-center relative">
                         <h2 class="text-lg font-semibold">{{ user.get_full_name|title }}</h2>
                         <p class="text-xs text-gray-300">{{ user.address|truncatechars:20|capfirst }}</p>
@@ -44,20 +44,31 @@
                     </div>
                 </div>
                 <nav class="mt-6 flex-grow">
+
+
                     <a href="{% url 'dashboard' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'dashboard' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
                         <i class="fas fa-home mr-3 text-xl"></i> <span class="text-lg">Dashboard</span>
                     </a>
+
+
                     <a href="{% url 'all_projects' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'all_projects' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
                         <i class="fas fa-project-diagram mr-3 text-xl"></i> <span class="text-lg">Projects</span>
                     </a>
+
+
                     <a href="{% url 'all_expenses' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'all_expenses' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
                         <i class="fas fa-receipt mr-3 text-xl"></i> <span class="text-lg">All Expenses</span>
                     </a>
+
+
                     <a href="{% url 'export_pdf_report' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'export_pdf_report' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
                         <i class="fas fa-file-pdf mr-3 text-xl"></i> <span class="text-lg">Export PDF Report</span>
                     </a>
+
                 </nav>
                 <div class="p-4 mt-auto">
+
+
                     <a href="{% url 'logout' %}" class="block py-3 px-6 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-center flex items-center justify-center">
                         <i class="fas fa-sign-out-alt mr-3 text-xl"></i> <span class="text-lg font-semibold">Logout</span>
                     </a>
