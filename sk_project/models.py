@@ -42,25 +42,25 @@ class User(AbstractUser):
             project_expenses=Sum('expenses__amount')
         ).aggregate(total=Sum('project_expenses'))['total'] or 0
 class MainBudget(models.Model):
-    """
-    Main budget model to represent the total budget for a specific year.
-    """
-    year = models.PositiveIntegerField(unique=True)
+    year = models.PositiveIntegerField()
     total_budget = models.DecimalField(max_digits=10, decimal_places=2)
     chairman = models.ForeignKey(User, related_name='main_budgets', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"Main Budget for {self.year} - Total: {self.total_budget}"
-
     class Meta:
         verbose_name_plural = "Main Budgets"
+        unique_together = ['year', 'chairman']
+
+    def __str__(self):
+        return f"Main Budget for {self.year} - Total: {self.total_budget} - Chairman: {self.chairman.username}"
+
     def calculate_usage_percentage(self):
         total_allocated = self.projects.aggregate(Sum('budget'))['budget__sum'] or 0
         if self.total_budget > 0:
             return (total_allocated / self.total_budget) * 100
         return 0
+
     @property
     def allocated_budget(self):
         return self.projects.aggregate(Sum('budget'))['budget__sum'] or 0
@@ -74,8 +74,6 @@ class MainBudget(models.Model):
         if self.total_budget > 0:
             return (self.allocated_budget / self.total_budget) * 100
         return 0
-
-
 class Project(models.Model):
     """
     Project model to represent individual projects funded from the main budget.

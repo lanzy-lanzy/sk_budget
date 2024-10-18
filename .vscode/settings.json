@@ -1,0 +1,10 @@
+
+{
+    "python.pythonPath": "C:\\Users\\dttsi\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe",
+    "python.autoComplete.extraPaths": [
+        "C:\\Users\\dttsi\\AppData\\Local\\Microsoft\\WindowsApps"
+    ],
+    "python.analysis.extraPaths": [
+        "C:\\Users\\dttsi\\AppData\\Local\\Microsoft\\WindowsApps"
+    ]
+}

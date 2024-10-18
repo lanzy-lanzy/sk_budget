@@ -84,6 +84,9 @@ def dashboard(request):
     cumulative_spending = total_expenses
     budget_utilization = (total_expenses / main_budget.total_budget * 100) if main_budget else 0
 
+    for project in projects:
+        project.budget_utilized = (project.total_expenses or 0) >= project.allocated_budget
+
     context = {
         'main_budget': main_budget,
         'remaining_budget': remaining_budget,
@@ -113,7 +116,6 @@ def create_main_budget(request):
             messages.error(request, 'Error creating main budget. Please check your input.')
     return redirect('dashboard')
 
-
 @login_required
 def create_new_year_budget(request):
     if request.method == 'POST':
@@ -121,21 +123,39 @@ def create_new_year_budget(request):
         if form.is_valid():
             year = form.cleaned_data['year']
             total_budget = form.cleaned_data['total_budget']
+            
             with transaction.atomic():
-                if MainBudget.objects.filter(chairman=request.user, year=year).exists():
-                    messages.error(request, f'A budget for {year} already exists.')
+                # Get the previous year's budget
+                previous_year_budget = MainBudget.objects.filter(
+                    chairman=request.user,
+                    year=year-1
+                ).first()
+                
+                # Calculate remaining budget from previous year
+                remaining_budget = 0
+                if previous_year_budget:
+                    remaining_budget = previous_year_budget.remaining_budget
+                
+                # Add remaining budget to the new total budget
+                new_total_budget = total_budget + remaining_budget
+                
+                main_budget, created = MainBudget.objects.get_or_create(
+                    chairman=request.user,
+                    year=year,
+                    defaults={'total_budget': new_total_budget}
+                )
+                
+                if created:
+                    messages.success(request, f'New budget for {year} created successfully! Total budget: ₱{new_total_budget:,.2f} (including ₱{remaining_budget:,.2f} from previous year)')
                 else:
-                    MainBudget.objects.create(
-                        year=year,
-                        total_budget=total_budget,
-                        chairman=request.user,
-                        created_at=timezone.now(),
-                        updated_at=timezone.now()
-                    )
-                    messages.success(request, f'New budget for {year} created successfully! Total budget: ₱{total_budget:,.2f}')
+                    main_budget.total_budget = new_total_budget
+                    main_budget.save()
+                    messages.info(request, f'Budget for {year} updated successfully! Total budget: ₱{new_total_budget:,.2f} (including ₱{remaining_budget:,.2f} from previous year)')
         else:
             messages.error(request, 'Error creating new year budget. Please check your input.')
     return redirect('dashboard')
+
+
 
 # Project Management Views
 
