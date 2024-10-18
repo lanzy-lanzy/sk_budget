@@ -49,30 +49,30 @@
                         <a href="{% url 'admin_dashboard' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
                             <i class="fas fa-user-shield mr-3 text-xl"></i> <span class="text-lg">Admin Dashboard</span>
                         </a>
-                        {% else%}
+                    {% else%}
 
-                    <a href="{% url 'dashboard' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'dashboard' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
-                        <i class="fas fa-home mr-3 text-xl"></i> <span class="text-lg">Dashboard</span>
-                    </a>
-
-
-                    <a href="{% url 'all_projects' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'all_projects' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
-                        <i class="fas fa-project-diagram mr-3 text-xl"></i> <span class="text-lg">Projects</span>
-                    </a>
+                        <a href="{% url 'dashboard' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'dashboard' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
+                            <i class="fas fa-home mr-3 text-xl"></i> <span class="text-lg">Dashboard</span>
+                        </a>
 
 
-                    <a href="{% url 'all_expenses' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'all_expenses' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
-                        <i class="fas fa-receipt mr-3 text-xl"></i> <span class="text-lg">All Expenses</span>
-                    </a>
+                        <a href="{% url 'all_projects' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'all_projects' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
+                            <i class="fas fa-project-diagram mr-3 text-xl"></i> <span class="text-lg">Projects</span>
+                        </a>
 
 
-                    <a href="{% url 'export_pdf_report' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'export_pdf_report' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
-                        <i class="fas fa-file-pdf mr-3 text-xl"></i> <span class="text-lg">Export PDF Report</span>
-                    </a>
+                        <a href="{% url 'all_expenses' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'all_expenses' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
+                            <i class="fas fa-receipt mr-3 text-xl"></i> <span class="text-lg">All Expenses</span>
+                        </a>
+
+
+                        <a href="{% url 'export_pdf_report' %}" class="block py-3 px-6 hover:bg-quaternary transition-colors duration-200 {% if request.resolver_match.url_name == 'export_pdf_report' %}bg-quaternary text-primary font-bold{% endif %} rounded-lg mb-2 mx-2 flex items-center">
+                            <i class="fas fa-file-pdf mr-3 text-xl"></i> <span class="text-lg">Export PDF Report</span>
+                        </a>
                     {% endif %}
                 </nav>
 
-                
+
                 <div class="p-4 mt-auto">
 
 

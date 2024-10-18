@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import models, transaction
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -25,7 +25,7 @@ from django.db.models import Q
 from reportlab.platypus import HRFlowable
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, render
-# User Authentication Views
+from django.urls import reverse# User Authentication Views
 def landing_page(request):
     return render(request, 'landing_page.html')
 def register(request):
@@ -49,13 +49,12 @@ def user_login(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                if user.is_superuser:
-                    return redirect('admin_dashboard')
-                else:
-                    return redirect('dashboard')
+                redirect_url = 'admin_dashboard' if user.is_superuser else 'dashboard'
+                return JsonResponse({'success': True, 'redirect_url': reverse(redirect_url)})
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
+
 
 
 def user_logout(request):
