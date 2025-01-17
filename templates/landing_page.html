@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     {% load static %}
+    {% load humanize %}
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,62 +23,301 @@
                 }
             }
         </script>
+        <style>
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .hero-pattern {
+                background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230a6847' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            }
+        </style>
     </head>
-    <body class="bg-gradient-to-br from-secondary to-primary min-h-screen">
-        <header class="bg-tertiary text-white p-4">
-            <nav class="container mx-auto flex justify-between items-center">
-                <h1 class="text-2xl font-bold"><i class="fas fa-coins mr-2"></i>SK Budget</h1>
-                <div>
-                    <a href="{% url 'login' %}" class="bg-quaternary hover:bg-primary text-tertiary font-bold py-2 px-4 rounded transition duration-300"><i class="fas fa-sign-in-alt mr-2"></i>Login</a>
+    <body class="bg-gradient-to-br from-secondary to-primary min-h-screen hero-pattern">
+        <!-- Navbar -->
+        <header class="fixed w-full top-0 z-50">
+            <nav class="glass-effect text-tertiary py-4">
+                <div class="container mx-auto px-4 flex justify-between items-center">
+                    <h1 class="text-2xl font-bold flex items-center">
+                        <i class="fas fa-coins mr-2 text-tertiary"></i>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-tertiary to-quaternary">SK Budget</span>
+                    </h1>
+                    <div class="flex items-center">
+                        <a href="{% url 'register' %}" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105 mr-2">
+                            <i class="fas fa-user-plus mr-2"></i>Register
+                        </a>
+                        <a href="{% url 'login' %}" class="bg-tertiary hover:bg-quaternary text-white font-bold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </a>
+                    </div>
                 </div>
             </nav>
         </header>
 
-        <main class="container mx-auto mt-16 px-4">
-            <section class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-tertiary mb-4"><i class="fas fa-users mr-2"></i>Empowering Youth Leadership</h2>
-                <p class="text-xl text-gray-700 mb-8">Manage your SK projects and budgets efficiently</p>
-                <a href="{% url 'register' %}" class="bg-tertiary hover:bg-quaternary text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300 inline-block"><i class="fas fa-rocket mr-2"></i>Get Started</a>
-            </section>
-
-            <section class="grid md:grid-cols-3 gap-8 mb-16">
-                <div class="bg-white p-8 rounded-2xl shadow-xl text-center feature-card transform hover:scale-105 transition-transform duration-300">
-                    <div class="bg-tertiary inline-block p-4 rounded-full mb-6">
-                        <i class="fas fa-chart-line text-5xl text-white"></i>
-                    </div>
-                    <h3 class="text-2xl font-semibold mb-3 text-tertiary">Budget Tracking</h3>
-                    <p class="text-gray-600 leading-relaxed">Easily monitor and manage your SK funds with precision</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl shadow-xl text-center feature-card transform hover:scale-105 transition-transform duration-300">
-                    <div class="bg-tertiary inline-block p-4 rounded-full mb-6">
-                        <i class="fas fa-tasks text-5xl text-white"></i>
-                    </div>
-                    <h3 class="text-2xl font-semibold mb-3 text-tertiary">Project Management</h3>
-                    <p class="text-gray-600 leading-relaxed">Organize and track your community projects efficiently</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl shadow-xl text-center feature-card transform hover:scale-105 transition-transform duration-300">
-                    <div class="bg-tertiary inline-block p-4 rounded-full mb-6">
-                        <i class="fas fa-file-alt text-5xl text-white"></i>
-                    </div>
-                    <h3 class="text-2xl font-semibold mb-3 text-tertiary">Report Generation</h3>
-                    <p class="text-gray-600 leading-relaxed">Create comprehensive reports with ease and clarity</p>
+        <main class="pt-20">
+            <!-- Hero Section -->
+            <section class="container mx-auto px-4 py-16">
+                <div class="text-center max-w-4xl mx-auto">
+                    <h2 class="text-5xl font-bold text-tertiary mb-6 leading-tight">
+                        <span class="block">Empowering Youth Leadership</span>
+                        <span class="block text-3xl text-quaternary mt-2">Through Efficient Budget Management</span>
+                    </h2>
+                    <p class="text-xl text-gray-700 mb-10 max-w-2xl mx-auto">Transform your SK projects with our comprehensive budget management system. Track, manage, and report with ease.</p>
+                    <a href="{% url 'register' %}" class="inline-block bg-tertiary hover:bg-quaternary text-white font-bold py-4 px-8 rounded-full text-xl transition duration-300 transform hover:scale-105 hover:shadow-lg">
+                        <i class="fas fa-rocket mr-2"></i>Get Started Today
+                    </a>
                 </div>
             </section>
 
-            <section class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-tertiary mb-4"><i class="fas fa-handshake mr-2"></i>Join the SK Budget Community</h2>
-                <p class="text-xl text-gray-700 mb-8">Start making a difference in your community today</p>
-                <a href="{% url 'register' %}" class="bg-quaternary hover:bg-primary text-tertiary font-bold py-3 px-6 rounded-lg text-xl transition duration-300 inline-block"><i class="fas fa-user-plus mr-2"></i>Sign Up Now</a>
+        
+
+            <!-- Recently Completed Projects Section -->
+            <section class="container mx-auto px-4 py-16">
+                <h2 class="text-4xl font-bold text-tertiary mb-12 text-center">
+                    <i class="fas fa-trophy mr-2"></i>Recently Completed Projects
+                </h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for project in completed_projects %}
+                    <div class="glass-effect rounded-3xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-xl cursor-pointer"
+                         onclick="showProjectDetails('{{ project.title }}', '{{ project.description }}', '{{ project.image.url }}', 
+                         '{{ project.allocated_budget|floatformat:2 }}', '{{ project.completion_date|date:'F d, Y' }}', '{{ project.chairman_name }}',
+                         '{{ project.address }}', '{{ project.category }}', '{{ project.beneficiaries }}', 
+                         '{{ project.start_date|date:'F d, Y' }}', '{{ project.status }}')">
+                        <div class="h-56 bg-tertiary relative overflow-hidden">
+                            {% if project.image %}
+                                <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-tertiary text-white">
+                                    <i class="fas fa-project-diagram text-5xl"></i>
+                                </div>
+                            {% endif %}
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                <span class="text-white text-sm px-2 py-1 rounded-full bg-tertiary/80">
+                                    <i class="fas fa-tag mr-1"></i>{{ project.category }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-tertiary mb-2">{{ project.title }}</h3>
+                            <p class="text-gray-700 mb-4 line-clamp-2">{{ project.description|upper }}</p>
+                            <div class="flex justify-between items-center text-sm text-gray-600">
+                                <span><i class="fas fa-calendar-check mr-1"></i>{{ project.completion_date|date:'F d, Y' }}</span>
+                                <span><i class="fas fa-money-bill-wave mr-1"></i>₱{{ project.allocated_budget|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full glass-effect rounded-3xl p-12 text-center">
+                        <i class="fas fa-info-circle text-6xl text-tertiary/50 mb-4"></i>
+                        <p class="text-xl text-gray-600">No completed projects available at the moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Call to Action Section -->
+            <section class="container mx-auto px-4 py-16 text-center">
+                <div class="glass-effect rounded-3xl p-12 max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold text-tertiary mb-6">
+                        <i class="fas fa-handshake mr-2"></i>Join the SK Budget Community
+                    </h2>
+                    <p class="text-xl text-gray-700 mb-8">Start making a difference in your community today</p>
+                    <a href="{% url 'register' %}" class="inline-block bg-tertiary hover:bg-quaternary text-white font-bold py-4 px-8 rounded-full text-xl transition duration-300 transform hover:scale-105 hover:shadow-lg">
+                        <i class="fas fa-user-plus mr-2"></i>Sign Up Now
+                    </a>
+                </div>
             </section>
         </main>
 
-        <footer class="bg-tertiary text-white py-4 mt-16">
-            <div class="container mx-auto text-center">
+        <!-- Project Details Modal -->
+        <div id="projectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 overflow-y-auto py-8">
+            <div class="glass-effect rounded-3xl p-8 max-w-4xl w-full mx-4 relative my-8">
+                <button onclick="closeProjectModal()" class="absolute top-4 right-4 text-tertiary hover:text-quaternary">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+                
+                <!-- Project Header -->
+                <div class="flex flex-col md:flex-row gap-8 mb-8">
+                    <div class="w-full md:w-1/2">
+                        <div class="h-80 bg-tertiary rounded-2xl overflow-hidden mb-4">
+                            <img id="modalImage" src="" alt="" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span id="modalCategory" class="text-sm px-3 py-1 rounded-full bg-tertiary text-white">
+                                <i class="fas fa-tag mr-1"></i><span></span>
+                            </span>
+                            <span id="modalStatus" class="text-sm px-3 py-1 rounded-full bg-quaternary text-white">
+                                <i class="fas fa-check-circle mr-1"></i><span></span>
+                            </span>
+                        </div>
+                        <h3 id="modalTitle" class="text-3xl font-bold text-tertiary mb-4"></h3>
+                        <p id="modalDescription" class="text-gray-700 mb-6"></p>
+                    </div>
+                </div>
+
+                <!-- Project Details Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Timeline -->
+                    <div class="glass-effect p-6 rounded-2xl">
+                        <h4 class="text-lg font-semibold text-tertiary mb-4">
+                            <i class="fas fa-clock mr-2"></i>Timeline
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-play-circle text-tertiary mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-600">Start Date</p>
+                                    <p id="modalStartDate" class="font-semibold text-tertiary"></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-flag-checkered text-tertiary mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-600">Completion Date</p>
+                                    <p id="modalCompletionDate" class="font-semibold text-tertiary"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget Information -->
+                    <div class="glass-effect p-6 rounded-2xl">
+                        <h4 class="text-lg font-semibold text-tertiary mb-4">
+                            <i class="fas fa-money-bill-wave mr-2"></i>Budget Information
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-coins text-tertiary mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-600">Allocated Budget</p>
+                                    <p id="modalBudget" class="font-semibold text-tertiary text-xl"></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-pie text-tertiary mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-gray-600">Budget Year</p>
+                                    <p id="modalBudgetYear" class="font-semibold text-tertiary"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="glass-effect p-6 rounded-2xl">
+                        <h4 class="text-lg font-semibold text-tertiary mb-4">
+                            <i class="fas fa-map-marker-alt mr-2"></i>Location
+                        </h4>
+                        <p id="modalAddress" class="text-tertiary"></p>
+                    </div>
+
+                    <!-- Project Lead -->
+                    <div class="glass-effect p-6 rounded-2xl col-span-2">
+                        <h4 class="text-lg font-semibold text-tertiary mb-4">
+                            <i class="fas fa-user-tie mr-2"></i>Project Lead
+                        </h4>
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-tertiary rounded-full flex items-center justify-center text-white mr-4">
+                                <i class="fas fa-user text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">SK Chairman</p>
+                                <p id="modalChairman" class="font-semibold text-tertiary"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="glass-effect text-tertiary py-8 mt-16">
+            <div class="container mx-auto px-4 text-center">
                 <p><i class="far fa-copyright mr-2"></i>2024 SK Budget. All rights reserved.</p>
             </div>
         </footer>
 
         <script>
+            function showProjectDetails(title, description, imageUrl, budget, completionDate, chairman, 
+                                     address, category, beneficiaries, startDate, status) {
+                // Header Information
+                document.getElementById('modalTitle').textContent = title;
+                document.getElementById('modalDescription').textContent = description;
+                document.getElementById('modalImage').src = imageUrl;
+                document.getElementById('modalCategory').querySelector('span').textContent = category || 'Uncategorized';
+                document.getElementById('modalStatus').querySelector('span').textContent = status || 'Completed';
+
+                // Timeline
+                document.getElementById('modalStartDate').textContent = startDate || 'Not specified';
+                document.getElementById('modalCompletionDate').textContent = completionDate || 'Not specified';
+
+                // Budget Information
+                const budgetNum = parseFloat(budget.replace(/[^0-9.-]+/g, '')) || 0;
+                const formattedBudget = '₱' + budgetNum.toLocaleString('en-PH', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                document.getElementById('modalBudget').textContent = formattedBudget;
+                const budgetYear = new Date(startDate).getFullYear();
+                document.getElementById('modalBudgetYear').textContent = budgetYear || 'Not specified';
+
+                // Location & Project Lead
+                document.getElementById('modalAddress').textContent = address || 'Location not specified';
+                document.getElementById('modalChairman').textContent = chairman || 'Not specified';
+
+                // Show Modal
+                document.getElementById('projectModal').classList.remove('hidden');
+                document.getElementById('projectModal').classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeProjectModal() {
+                document.getElementById('projectModal').classList.add('hidden');
+                document.getElementById('projectModal').classList.remove('flex');
+                document.body.style.overflow = 'auto';
+            }
+
+            // Close modal when clicking outside
+            document.getElementById('projectModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeProjectModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeProjectModal();
+                }
+            });
+
+            // Animate elements on scroll
+            function animateOnScroll() {
+                gsap.from(".glass-effect", {
+                    scrollTrigger: {
+                        trigger: ".glass-effect",
+                        start: "top bottom",
+                        toggleActions: "play none none reverse"
+                    },
+                    y: 50,
+                    opacity: 0,
+                    duration: 1,
+                    stagger: 0.2,
+                    ease: "power3.out"
+                });
+            }
+
+            // Initial animations
+            gsap.from("h1, h2", {
+                duration: 1,
+                y: -30,
+                opacity: 0,
+                stagger: 0.2,
+                ease: "power2.out"
+            });
+
             gsap.from(".feature-card", {
                 duration: 1,
                 y: 50,
@@ -86,21 +326,11 @@
                 ease: "power3.out"
             });
 
-            gsap.from("h1, h2, p, a", {
-                duration: 1,
-                y: -30,
-                opacity: 0,
-                stagger: 0.1,
-                ease: "power2.out"
-            });
-
-            gsap.from("i", {
-                duration: 0.5,
-                scale: 0,
-                opacity: 0,
-                stagger: 0.05,
-                ease: "back.out(1.7)"
-            });
+            // Initialize scroll animations
+            if (typeof ScrollTrigger !== 'undefined') {
+                gsap.registerPlugin(ScrollTrigger);
+                animateOnScroll();
+            }
         </script>
     </body>
 </html>

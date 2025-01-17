@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'widget_tweaks',
     'sk_project',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -72,8 +72,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sk_budget.wsgi.application'
 AUTH_USER_MODEL = 'sk_project.User'
 LOGOUT_REDIRECT_URL = 'login'  # or any other URL you prefer
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -121,6 +119,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

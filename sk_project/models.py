@@ -3,6 +3,10 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 from decimal import Decimal
+from PIL import Image
+from io import BytesIO
+from django.core.files import File
+
 class User(AbstractUser):
     """
     User model to represent SK chairmen.
@@ -41,6 +45,7 @@ class User(AbstractUser):
         return self.projects.annotate(
             project_expenses=Sum('expenses__amount')
         ).aggregate(total=Sum('project_expenses'))['total'] or 0
+
 class MainBudget(models.Model):
     year = models.PositiveIntegerField()
     total_budget = models.DecimalField(max_digits=10, decimal_places=2)
@@ -74,6 +79,7 @@ class MainBudget(models.Model):
         if self.total_budget > 0:
             return (self.allocated_budget / self.total_budget) * 100
         return 0
+
 class Project(models.Model):
     """
     Project model to represent individual projects funded from the main budget.
@@ -86,6 +92,14 @@ class Project(models.Model):
     chairman = models.ForeignKey(User, related_name='projects', on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
+    STATUS_CHOICES = [
+        ('ongoing', 'Ongoing'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ongoing')
+    image = models.ImageField(upload_to='project_images/%Y/%m/%d/', blank=True, null=True)
+    final_image = models.ImageField(upload_to='project_final_images/%Y/%m/%d/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -98,12 +112,36 @@ class Project(models.Model):
 
     def total_expenses(self):
         return self.expenses.aggregate(total=models.Sum('amount'))['total'] or 0
+
     @property
     def remaining_budget(self):
         total_expenses = self.expenses.aggregate(total=models.Sum('amount'))['total'] or 0
         return self.budget - total_expenses
 
-    
+    @property
+    def latest_image(self):
+        # First check if project has its own image
+        if self.image:
+            return self.image
+        
+        # If no project image, get the latest accomplishment report image
+        latest_report = self.accomplishment_reports.order_by('-report_date').first()
+        if latest_report:
+            latest_image = latest_report.report_images.order_by('-created_at').first()
+            if latest_image:
+                return latest_image.image
+        return None
+
+    def save(self, *args, **kwargs):
+        # If status is being changed to completed and no final image is set,
+        # try to get the latest accomplishment report image
+        if self.status == 'completed' and not self.final_image:
+            latest_report = self.accomplishment_reports.order_by('-report_date').first()
+            if latest_report:
+                latest_image = latest_report.report_images.order_by('-created_at').first()
+                if latest_image:
+                    self.final_image = latest_image.image
+        super().save(*args, **kwargs)
 
 class Expense(models.Model):
     """
@@ -136,11 +174,45 @@ class AccomplishmentReport(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Accomplishment Report for {self.project.name} on {self.report_date}"
+        return f"Report for {self.project.name} - {self.report_date}"
 
     class Meta:
         ordering = ['report_date']
 
+class AccomplishmentReportImage(models.Model):
+    """
+    Model to store multiple images for accomplishment reports.
+    """
+    report = models.ForeignKey(AccomplishmentReport, related_name='report_images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='accomplishment_reports/%Y/%m/%d/')
+    caption = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Image for {self.report} - {self.created_at}"
+
+    def compress_image(self, image):
+        im = Image.open(image)
+        # Convert to RGB if image is in RGBA mode
+        if im.mode in ('RGBA', 'P'):
+            im = im.convert('RGB')
+        # Calculate new size while maintaining aspect ratio
+        max_size = (800, 800)
+        im.thumbnail(max_size, Image.LANCZOS)
+        # Save the image to BytesIO object with optimized quality
+        im_io = BytesIO()
+        im.save(im_io, 'JPEG', quality=85, optimize=True)
+        # Create a new Django-friendly Files object
+        new_image = File(im_io, name=image.name)
+        return new_image
+
+    def save(self, *args, **kwargs):
+        if not self.id:  # Only compress if it's a new image
+            self.image = self.compress_image(self.image)
+        super().save(*args, **kwargs)
 
 class Profile(models.Model):
     """

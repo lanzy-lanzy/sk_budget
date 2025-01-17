@@ -2,9 +2,12 @@
 {% load humanize %}
 {% block content %}
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold text-tertiary mb-8 animate-fade-in">All Projects</h1>
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold text-tertiary animate-fade-in">All Projects</h1>
+    
+        </div>
 
-    <!-- Search form -->
+        <!-- Search form -->
         <form method="GET" action="{% url 'all_projects' %}" class="mb-8">
             <div class="flex items-center max-w-lg mx-auto">
                 <input type="text" name="search" placeholder="Search projects..." value="{{ request.GET.search }}" class="flex-grow p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-tertiary">
@@ -20,7 +23,6 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for project in projects %}
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-fade-in" style="animation-delay: {{ forloop.counter|add:1|stringformat:'d'}}00ms;">
-
                     <div class="bg-tertiary text-white p-4">
                         <h2 class="text-xl font-semibold">{{ project.name }}</h2>
                     </div>
@@ -29,46 +31,109 @@
                         <div class="grid grid-cols-2 gap-4 text-sm mb-4">
                             <div>
                                 <p class="font-semibold text-tertiary"><i class="fas fa-money-bill-wave mr-2"></i>Budget</p>
-                                <p>₱{{ project.budget|intcomma }}</p>
+                                <p>₱{{ project.allocated_budget|intcomma }}</p>
                             </div>
                             <div>
                                 <p class="font-semibold text-tertiary"><i class="fas fa-receipt mr-2"></i>Expenses</p>
-                                <p>₱{{ project.total_expenses|intcomma }}</p>
+                                <p>₱{{ project.total_expenses|default:0|intcomma }}</p>
                             </div>
                             <div>
                                 <p class="font-semibold text-tertiary"><i class="fas fa-calendar-alt mr-2"></i>Start Date</p>
                                 <p>{{ project.start_date }}</p>
                             </div>
                             <div>
-                                <p class="font-semibold text-tertiary"><i class="fas fa-flag-checkered mr-2"></i>End Date</p>
+                                <p class="font-semibold text-tertiary"><i class="fas fa-calendar-check mr-2"></i>End Date</p>
                                 <p>{{ project.end_date }}</p>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center mt-4">
-                            <a href="{% url 'project_detail' project.id %}" class="bg-tertiary text-white px-4 py-2 rounded-full hover:bg-quaternary transition duration-300">
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="{% url 'project_detail' project.id %}" class="bg-tertiary text-white px-4 py-2 rounded-lg hover:bg-quaternary transition duration-300">
                                 <i class="fas fa-eye mr-2"></i>View Details
                             </a>
-                            <a href="{% url 'project_accomplishment_report' project.id %}" class="bg-primary text-tertiary px-4 py-2 rounded-full hover:bg-secondary transition duration-300">
-                                <i class="fas fa-file-alt mr-2"></i>Accomplishment Report
+                            <a href="{% url 'export_sk_report' project_id=project.id %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300">
+                                <i class="fas fa-file-pdf mr-2"></i>Export PDF
                             </a>
                         </div>
                     </div>
                 </div>
             {% empty %}
-                <p class="col-span-3 text-center text-gray-500 text-lg animate-fade-in">No projects found. {% if search_query %}Try a different search term or {% endif %}Start by creating your first project!</p>
+                <div class="col-span-3 text-center py-12">
+                    <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-xl text-gray-500">No projects found</p>
+                </div>
             {% endfor %}
         </div>
     </div>
-{% endblock %}
 
-{% block extra_css %}
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-tertiary"></div>
+            <p class="text-lg">Generating PDF report...</p>
+        </div>
+    </div>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loadingModal').classList.remove('hidden');
         }
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
+
+        function hideLoading() {
+            document.getElementById('loadingModal').classList.add('hidden');
         }
-    </style>
+
+        function exportAllProjects() {
+            showLoading();
+            fetch('/generate-projects-report/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'all_projects_report.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    hideLoading();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    hideLoading();
+                    alert('Error generating report. Please try again.');
+                });
+        }
+
+        // Add click event listeners to individual export buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const exportButtons = document.querySelectorAll('[data-export-project]');
+            exportButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showLoading();
+                    fetch(this.href)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'project_report.pdf';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            hideLoading();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            hideLoading();
+                            alert('Error generating report. Please try again.');
+                        });
+                });
+            });
+        });
+    </script>
 {% endblock %}

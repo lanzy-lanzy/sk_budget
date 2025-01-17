@@ -104,13 +104,29 @@
             <h2 class="text-4xl font-bold text-tertiary mb-8 text-center pulse"><i class="fas fa-user-circle mr-2 text-green-500"></i>Login</h2>
             <form method="post" class="space-y-6">
                 {% csrf_token %}
+                {% if form.errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline">Please check your username and password.</span>
+                </div>
+                {% endif %}
                 <div class="relative group">
                     <i class="fas fa-envelope absolute top-3 left-3 text-green-500 group-hover:text-tertiary transition-colors duration-300 z-10"></i>
-                    <input type="text" name="{{ form.username.name }}" class="w-full pl-10 pr-3 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-tertiary transition-all duration-300 bg-white" placeholder="Username">
+                    <input type="text" name="{{ form.username.name }}" class="w-full pl-10 pr-3 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-tertiary transition-all duration-300 bg-white" placeholder="Username" required>
+                    {% if form.username.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.username.errors|join:", " }}</p>
+                    {% endif %}
                 </div>
                 <div class="relative group">
                     <i class="fas fa-lock absolute top-3 left-3 text-green-500 group-hover:text-tertiary transition-colors duration-300 z-10"></i>
-                    <input type="password" name="{{ form.password.name }}" class="w-full pl-10 pr-3 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-tertiary transition-all duration-300 bg-white" placeholder="Password">
+                    <input type="password" name="{{ form.password.name }}" class="w-full pl-10 pr-3 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-tertiary transition-all duration-300 bg-white" placeholder="Password" required>
+                    {% if form.password.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.password.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Error! </strong>
+                    <span class="block sm:inline message-text"></span>
                 </div>
                 <button type="submit" id="loginButton" class="w-full bg-tertiary text-white px-6 py-3 rounded-full hover:bg-quaternary transition duration-300 flex items-center justify-center transform hover:scale-105 hover:shadow-lg">
                     <span class="spinner" style="display: none;"></span>
@@ -130,7 +146,12 @@
                     var $spinner = $('.spinner');
                     var $icon = $button.find('i');
                     var $text = $button.find('.button-text');
+                    var $errorDiv = $('#error-message');
 
+                    // Hide any existing error messages
+                    $errorDiv.addClass('hidden');
+
+                    // Disable button and show loading state
                     $button.prop('disabled', true);
                     $spinner.show();
                     $icon.hide();
@@ -142,17 +163,29 @@
                         data: $(this).serialize(),
                         success: function(response) {
                             if (response.success) {
-                                setTimeout(function() {
-                                    window.location.href = response.redirect_url;
-                                }, 1000);
+                                window.location.href = response.redirect_url;
+                            } else {
+                                // Show error message
+                                $errorDiv.removeClass('hidden');
+                                $errorDiv.find('.message-text').text(response.error);
+                                
+                                // Reset button state
+                                $button.prop('disabled', false);
+                                $spinner.hide();
+                                $icon.show();
+                                $text.text('Login');
                             }
                         },
                         error: function() {
+                            // Show generic error message
+                            $errorDiv.removeClass('hidden');
+                            $errorDiv.find('.message-text').text('An error occurred. Please try again.');
+                            
+                            // Reset button state
                             $button.prop('disabled', false);
                             $spinner.hide();
                             $icon.show();
                             $text.text('Login');
-                            alert('Login failed. Please try again.');
                         }
                     });
                 });
