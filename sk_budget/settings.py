@@ -25,7 +25,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*', 'ep-tiny-leaf-a2sbbti7.eu-central-1.pg.koyeb.app']
+ALLOWED_HOSTS = ['biological-tahr-koyeb-lanzy-72a3ca35.koyeb.app']
 
 
 # Application definition
