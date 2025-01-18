@@ -20,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-5=vw6m-xl5i+t4b79sk^(bz@sto$j*h=5w_j5+veam!t%3=_s_')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['biological-tahr-koyeb-lanzy-72a3ca35.koyeb.app']
+ALLOWED_HOSTS = ['biological-tahr-koyeb-lanzy-72a3ca35.koyeb.app', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'sk_project',
     'widget_tweaks',
+    
 ]
 
 MIDDLEWARE = [
@@ -87,10 +88,10 @@ LOGOUT_REDIRECT_URL = 'login'  # or any other URL you prefer
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
+        'NAME': os.environ.get('DB_NAME', 'koyebdb'),
+        'USER': os.environ.get('DB_USER', 'koyeb-adm'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'A6lkhte5LNyg'),
+        'HOST': os.environ.get('DB_HOST', 'ep-tiny-leaf-a2sbbti7.eu-central-1.pg.koyeb.app'),
         'OPTIONS': {'sslmode': 'require'},
     }
 }
@@ -126,20 +127,14 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
