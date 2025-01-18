@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-5=vw6m-xl5i+t4b79sk^(bz@sto$j*h=5w_j5+veam!t%3=_s_')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = False
 
 ALLOWED_HOSTS = ['biological-tahr-koyeb-lanzy-72a3ca35.koyeb.app', 'localhost', '127.0.0.1']
 
